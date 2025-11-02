@@ -1,0 +1,34 @@
+-- -- Create users table
+-- CREATE TABLE users (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     email VARCHAR(255) UNIQUE NOT NULL,
+--     password_hash VARCHAR(255) NOT NULL,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
+
+-- -- Create cellars table
+-- CREATE TABLE cellars (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     user_id INT,
+--     name VARCHAR(255) NOT NULL,
+--     location VARCHAR(255),
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     FOREIGN KEY (user_id) REFERENCES users(id)
+-- );
+
+-- -- Create bottles table
+-- CREATE TABLE bottles (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     cellar_id INT,
+--     name VARCHAR(255) NOT NULL,
+--     vintage INTEGER,
+--     wine_type VARCHAR(100),
+--     region VARCHAR(100),
+--     country VARCHAR(100),
+--     price DECIMAL(10, 2),
+--     quantity INTEGER DEFAULT 1,
+--     image_url VARCHAR(255),
+--     notes TEXT,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     FOREIGN KEY (cellar_id) REFERENCES cellars(id)
+-- );

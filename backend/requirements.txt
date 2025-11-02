@@ -1,0 +1,29 @@
+# requirements.txt
+
+# Framework et serveur
+fastapi==0.120.4
+uvicorn[standard]==0.38.0
+
+# ORM et base de données
+sqlalchemy==2.0.44
+sqlmodel==0.0.27
+pymysql==1.1.2
+# mysqlclient
+psycopg2-binary==2.9.11
+
+# Validation et Pydantic
+pydantic==2.12.3
+email-validator==2.3.0
+
+# Auth & password hashing
+passlib[bcrypt]==1.7.4
+bcrypt==3.2.2
+pyjwt==2.10.1
+cryptography==46.0.3
+
+# Gestion des variables d'environnement
+python-dotenv==1.2.1
+
+# Logging / utilitaires
+# loguru==0.7.0
+# logging==0.4.9.6

@@ -1,0 +1,3 @@
+-- db/sql/init-permissions.sql
+-- GRANT ALL PRIVILEGES ON *.* TO 'wine_user'@'%' IDENTIFIED BY 'secure_password' WITH GRANT OPTION;
+-- FLUSH PRIVILEGES;
