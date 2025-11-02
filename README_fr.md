@@ -60,7 +60,7 @@ Ce projet repose sur une architecture **FastAPI + MySQL + Docker** et inclut une
 ### 1️⃣ Cloner le dépôt
 
 ```bash
-git clone https://github.com/<votre_repo>/WineNot.git
+git clone git@github.com:Malaudos35/WineNot.git
 cd WineNot
 ````
 
