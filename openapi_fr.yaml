@@ -1,0 +1,864 @@
+openapi: 3.0.3
+info:
+  title: Wine Cellar Management API
+  description: API pour gérer les utilisateurs, les permissions, les caves à vin et les bouteilles.
+  version: 1.0.0
+servers:
+- url: http://localhost:5000
+  description: Serveur de développement local
+
+# Définition des modèles de données (schemas)
+components:
+  schemas:
+    Token:
+      type: object
+      properties:
+        id:
+          type: string
+          format: id
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        user_id:
+          type: string
+          format: id
+          example: "12345"
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        expires_at:
+          type: string
+          format: date-time
+          example: "2025-12-31T23:59:59Z"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-01-01T00:00:00Z"
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: id
+          example: "12345"
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        username:
+          type: string
+          example: "john_doe"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-01-01T00:00:00Z"
+
+    Permission:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        name:
+          type: string
+          example: "manage_cellars"
+        description:
+          type: string
+          example: "Permet de gérer les caves à vin"
+
+    WineCellar:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        user_id:
+          type: string
+          format: id
+          example: "12345"
+        name:
+          type: string
+          example: "Ma Cave à Vin"
+        location:
+          type: string
+          example: "Sous-sol"
+        capacity:
+          type: integer
+          example: 100
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-01-01T00:00:00Z"
+
+    WineBottle:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        cellar_id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        name:
+          type: string
+          example: "Château Margaux 2015"
+        vintage:
+          type: integer
+          example: 2015
+        wine_type:
+          type: string
+          example: "Rouge"
+        region:
+          type: string
+          example: "Bordeaux"
+        country:
+          type: string
+          example: "France"
+        price:
+          type: number
+          format: float
+          example: 1200.50
+        quantity:
+          type: integer
+          example: 1
+        image_url:
+          type: string
+          format: uri
+          example: "https://example.com/images/bottle.jpg"
+        notes:
+          type: string
+          example: "Grand cru classé"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-01-01T00:00:00Z"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Unauthorized"
+        message:
+          type: string
+          example: "Invalid token"
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+# Définition des endpoints
+paths:
+  # ===== Manage Tokens =====
+  /tokens:
+    post:
+      tags:
+      - Tokens
+      summary: Génère un nouveau token d'accès
+      description: Crée un token JWT pour un utilisateur authentifié.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "secure_password123"
+      responses:
+        201:
+          description: Token créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        401:
+          description: Identifiants invalides
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /tokens/refresh:
+    post:
+      tags:
+      - Tokens
+      summary: Rafraîchit un token expiré
+      description: Génère un nouveau token à partir d'un token de rafraîchissement valide.
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        200:
+          description: Token rafraîchi avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        401:
+          description: Token invalide ou expiré
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Manage Users =====
+  /users:
+    post:
+      tags:
+      - Users
+      summary: Crée un nouvel utilisateur
+      description: Enregistre un nouvel utilisateur dans le système.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                username:
+                  type: string
+                  example: "john_doe"
+                password:
+                  type: string
+                  format: password
+                  example: "secure_password123"
+      responses:
+        201:
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        400:
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    get:
+      tags:
+      - Users
+      summary: Liste tous les utilisateurs
+      description: Récupère la liste de tous les utilisateurs (réservé aux admins).
+      security:
+      - bearerAuth: []
+      responses:
+        200:
+          description: Liste des utilisateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        403:
+          description: Accès non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /users/{user_id}:
+    get:
+      tags:
+      - Users
+      summary: Récupère un utilisateur
+      description: Récupère les détails d'un utilisateur spécifique.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: id
+        example: 12345
+      responses:
+        200:
+          description: Détails de l'utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        404:
+          description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      tags:
+      - Users
+      summary: Met à jour un utilisateur
+      description: Met à jour les informations d'un utilisateur.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: id
+        example: 12345
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "new_email@example.com"
+                username:
+                  type: string
+                  example: "new_username"
+                password:
+                  type: string
+                  format: password
+                  example: "new_secure_password123"
+      responses:
+        200:
+          description: Utilisateur mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        404:
+          description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      tags:
+      - Users
+      summary: Supprime un utilisateur
+      description: Supprime un utilisateur du système.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: id
+        example: 12345
+      responses:
+        204:
+          description: Utilisateur supprimé avec succès
+        404:
+          description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Manage Permissions =====
+  /permissions:
+    get:
+      tags:
+      - Permissions
+      summary: Liste toutes les permissions
+      description: Récupère la liste de toutes les permissions disponibles.
+      security:
+      - bearerAuth: []
+      responses:
+        200:
+          description: Liste des permissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Permission"
+        403:
+          description: Accès non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      tags:
+      - Permissions
+      summary: Crée une nouvelle permission
+      description: Ajoute une nouvelle permission au système.
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "manage_bottles"
+                description:
+                  type: string
+                  example: "Permet de gérer les bouteilles de vin"
+      responses:
+        201:
+          description: Permission créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Permission"
+        400:
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /permissions/{permission_id}:
+    delete:
+      tags:
+      - Permissions
+      summary: Supprime une permission
+      description: Supprime une permission du système.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: permission_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        204:
+          description: Permission supprimée avec succès
+        404:
+          description: Permission non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Manage Wine Cellars =====
+  /cellars:
+    post:
+      tags:
+      - Wine Cellars
+      summary: Crée une nouvelle cave à vin
+      description: Ajoute une nouvelle cave à vin pour un utilisateur.
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Ma Cave à Vin"
+                location:
+                  type: string
+                  example: "Sous-sol"
+                capacity:
+                  type: integer
+                  example: 100
+      responses:
+        201:
+          description: Cave créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WineCellar"
+        400:
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    get:
+      tags:
+      - Wine Cellars
+      summary: Liste toutes les caves à vin
+      description: Récupère la liste des caves à vin de l'utilisateur connecté.
+      security:
+      - bearerAuth: []
+      responses:
+        200:
+          description: Liste des caves à vin
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WineCellar"
+        403:
+          description: Accès non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /cellars/{cellar_id}:
+    get:
+      tags:
+      - Wine Cellars
+      summary: Récupère une cave à vin
+      description: Récupère les détails d'une cave à vin spécifique.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: cellar_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        200:
+          description: Détails de la cave à vin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WineCellar"
+        404:
+          description: Cave à vin non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      tags:
+      - Wine Cellars
+      summary: Met à jour une cave à vin
+      description: Met à jour les informations d'une cave à vin.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: cellar_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Nouveau Nom de la Cave"
+                location:
+                  type: string
+                  example: "Nouvelle Emplacement"
+                capacity:
+                  type: integer
+                  example: 150
+      responses:
+        200:
+          description: Cave à vin mise à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WineCellar"
+        404:
+          description: Cave à vin non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      tags:
+      - Wine Cellars
+      summary: Supprime une cave à vin
+      description: Supprime une cave à vin du système.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: cellar_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        204:
+          description: Cave à vin supprimée avec succès
+        404:
+          description: Cave à vin non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Manage Wine Bottles =====
+  /cellars/{cellar_id}/bottles:
+    post:
+      tags:
+      - Wine Bottles
+      summary: Ajoute une bouteille à une cave
+      description: Ajoute une nouvelle bouteille de vin à une cave spécifique.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: cellar_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Château Margaux 2015"
+                vintage:
+                  type: integer
+                  example: 2015
+                wine_type:
+                  type: string
+                  example: "Rouge"
+                region:
+                  type: string
+                  example: "Bordeaux"
+                country:
+                  type: string
+                  example: "France"
+                price:
+                  type: number
+                  format: float
+                  example: 1200.50
+                quantity:
+                  type: integer
+                  example: 1
+                image_url:
+                  type: string
+                  format: uri
+                  example: "https://example.com/images/bottle.jpg"
+                notes:
+                  type: string
+                  example: "Grand cru classé"
+      responses:
+        201:
+          description: Bouteille ajoutée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WineBottle"
+        400:
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    get:
+      tags:
+      - Wine Bottles
+      summary: Liste les bouteilles d'une cave
+      description: Récupère la liste des bouteilles dans une cave spécifique.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: cellar_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        200:
+          description: Liste des bouteilles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WineBottle"
+        404:
+          description: Cave à vin non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /bottles/{bottle_id}:
+    get:
+      tags:
+      - Wine Bottles
+      summary: Récupère une bouteille
+      description: Récupère les détails d'une bouteille spécifique.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: bottle_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        200:
+          description: Détails de la bouteille
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WineBottle"
+        404:
+          description: Bouteille non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      tags:
+      - Wine Bottles
+      summary: Met à jour une bouteille
+      description: Met à jour les informations d'une bouteille.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: bottle_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Nouveau Nom de la Bouteille"
+                vintage:
+                  type: integer
+                  example: 2016
+                wine_type:
+                  type: string
+                  example: "Blanc"
+                region:
+                  type: string
+                  example: "Bourgogne"
+                country:
+                  type: string
+                  example: "France"
+                price:
+                  type: number
+                  format: float
+                  example: 800.00
+                quantity:
+                  type: integer
+                  example: 2
+                image_url:
+                  type: string
+                  format: uri
+                  example: "https://example.com/images/new_bottle.jpg"
+                notes:
+                  type: string
+                  example: "Notes mises à jour"
+      responses:
+        200:
+          description: Bouteille mise à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WineBottle"
+        404:
+          description: Bouteille non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      tags:
+      - Wine Bottles
+      summary: Supprime une bouteille
+      description: Supprime une bouteille de la cave.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: bottle_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        204:
+          description: Bouteille supprimée avec succès
+        404:
+          description: Bouteille non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
