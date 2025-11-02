@@ -62,7 +62,7 @@ It’s built with **FastAPI**, **MySQL**, and **Docker**, featuring a clean REST
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/<your_repo>/WineNot.git
+git git@github.com:Malaudos35/WineNot.git
 cd WineNot
 ````
 
