@@ -5,11 +5,12 @@ from sqlalchemy.exc import IntegrityError
 from database import SessionLocal
 import models
 import schemas
+from dependencies import *
 from passlib.context import CryptContext
 from typing import List
 from dependencies import get_current_user, get_db, admin_required
 
-router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter(prefix=f"{API_PATH_ROOT}/users", tags=["Users"])
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
