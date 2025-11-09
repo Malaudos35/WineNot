@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 print("Start")
-logging.warning("##### Start #####")
+logging.info("##### Start #####")
 
 app = FastAPI(
     title="Wine Cellar Management API",

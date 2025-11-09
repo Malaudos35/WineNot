@@ -103,7 +103,7 @@ def test_update_user(admin_token):
     res = requests.get(f"{BASE_URL}/users", headers=headers)
     if res.status_code != 200:
         pytest.skip("Impossible de lister les users (403 ou autre)")
-    user_id = res.json()[0]["id"]
+    user_id = res.json()[2]["id"]
 
     payload = {
         "username": "updated_username",
