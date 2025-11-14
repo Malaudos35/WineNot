@@ -7,15 +7,16 @@ services:
     ports:
       - "3306:3306"  # Port MySQL
     environment:
-      - MYSQL_USER=wine_user
-      - MYSQL_PASSWORD=secure_password
-      - MYSQL_DATABASE=wine_cellar
-      - MYSQL_ROOT_PASSWORD=root_password  # Obligatoire pour MySQL
+      - TZ=${TZ}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     volumes:
       - ./db/sql:/docker-entrypoint-initdb.d
       # - postgres_data:/var/lib/postgresql/data  # Volume persistant pour la base de données
     networks:
-      - backend    # La base de données est uniquement sur le réseau "backend"
+      - backend
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
@@ -23,36 +24,84 @@ services:
       timeout: 5s
       retries: 10
 
+  minio:
+    image: minio/minio:latest
+    container_name: minio1
+    hostname: minio1
+    # command: server http://minio{1...4}/data --console-address ":9001" # Mode distribué
+    command: server /data --console-address ":9001"  # Mode mono-nœud
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+
+      retries: 3
+      timeout: 5s
+    environment:
+      - TZ=${TZ}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - ./minio/data1:/data
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "9000:9000"  # Port API S3
+      - "9001:9001"  # Port console web
+
   backend:
     build:
       context: backend
       dockerfile: backend.Dockerfile
     ports:
-      - "5000:5000"  # Mappe le port 5000 du conteneur au port 5000 de ta machine
+      - "5000:5000"
     environment:
-      - FLASK_ENV=production
-      - DATABASE_URL=mysql+pymysql://wine_user:secure_password@db:3306/wine_cellar
-      - ADMIN_NAME=admin@example.com
-      - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=admin
+      # Globales
+      - TZ=${TZ}
+      - FLASK_ENV=${FLASK_ENV}
+      # DB
+      - DATABASE_URL=${DATABASE_URL}
+      - ADMIN_NAME=${ADMIN_NAME}
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - API_PATH_ROOT=${API_PATH_ROOT}
+      # S3 MinIO
+      - MINIO_API_URL=${MINIO_API_URL}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     volumes:
       # - ./backend/code:/app:ro
         - ./backend/code:/app
     networks:
-      - frontend   # Le backend est sur les réseaux "frontend" et "backend"
+      - frontend
       - backend
     depends_on:
       db:
         condition: service_healthy
     restart: unless-stopped
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: frontend.Dockerfile
+    container_name: frontend
+    ports:
+      - "80:80"
+    networks:
+      - frontend
+    environment:
+      - TZ=${TZ}
+      - API_URL=${API_URL}
+      - SERVER_NAME=${SERVER_NAME}
+    volumes:
+      - ./frontend/code:/var/www/html
+      - ./frontend/conf/apache2.conf:/etc/apache2/apache2.conf:ro
+    depends_on:
+      - backend
 
-# Définition des réseaux
 networks:
   frontend:
     driver: bridge  # Réseau pour la communication entre frontend et backend
   backend:
     driver: bridge  # Réseau isolé pour la communication entre backend et db
 
-# Définition des volumes
 volumes:
   postgres_data:  # Volume persistant pour la base de données

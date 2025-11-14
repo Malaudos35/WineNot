@@ -1,7 +1,7 @@
 # routes/admin.py
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-from dependencies import get_db
+from dependencies import *
 from models import User, WineCellar, WineBottle, Permission
 import schemas
 from passlib.context import CryptContext
@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import logging
 
 # prefix="/admin", 
-router = APIRouter(tags=["admin"])
+router = APIRouter(prefix=API_PATH_ROOT, tags=["admin"])
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

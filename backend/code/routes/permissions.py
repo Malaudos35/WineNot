@@ -4,10 +4,11 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 import models
 import schemas
+from dependencies import *
 from typing import List
 from dependencies import get_db, admin_required
 
-router = APIRouter(prefix="/permissions", tags=["Permissions"])
+router = APIRouter(prefix=f"{API_PATH_ROOT}/permissions", tags=["Permissions"])
 
 
 @router.get("", response_model=List[schemas.PermissionOut])

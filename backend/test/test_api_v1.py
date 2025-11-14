@@ -2,7 +2,7 @@ import pytest
 import requests
 import uuid
 
-BASE_URL = "http://localhost:5000"
+BASE_URL = "http://localhost:5000/api"
 
 
 # =============================
@@ -103,7 +103,7 @@ def test_update_user(admin_token):
     res = requests.get(f"{BASE_URL}/users", headers=headers)
     if res.status_code != 200:
         pytest.skip("Impossible de lister les users (403 ou autre)")
-    user_id = res.json()[0]["id"]
+    user_id = res.json()[2]["id"]
 
     payload = {
         "username": "updated_username",
@@ -266,8 +266,8 @@ def test_delete_bottle(user_token):
         pytest.skip("Pas de cave existante")
     cellar_id = res_cellars.json()[0]["id"]
     res_bottles = requests.get(f"{BASE_URL}/cellars/{cellar_id}/bottles", headers=headers)
-    if res_bottles.status_code != 200 or not res_bottles.json():
-        pytest.skip("Pas de bouteilles existantes")
+    if int(res_bottles.status_code) != 200 or not res_bottles.json():
+        pytest.skip(f"Pas de bouteilles existantes {res_bottles.status_code}")
     bottle_id = res_bottles.json()[0]["id"]
     res = requests.delete(f"{BASE_URL}/bottles/{bottle_id}", headers=headers)
     assert res.status_code in [204, 404]

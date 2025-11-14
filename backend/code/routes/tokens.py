@@ -9,11 +9,12 @@ from passlib.context import CryptContext
 from database import SessionLocal
 import models
 import schemas
+from dependencies import *
 from typing import Dict
 from pydantic import BaseModel
 import uuid
 
-router = APIRouter(prefix="/tokens", tags=["Tokens"])
+router = APIRouter(prefix=f"{API_PATH_ROOT}/tokens", tags=["Tokens"])
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 JWT_SECRET = os.getenv("JWT_SECRET", "change_me_super_secret")
@@ -38,10 +39,10 @@ class TokenRequest(BaseModel):
 def create_token(payload: TokenRequest, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == payload.email).first()
     if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Invalid credentials 1")
 
     if not pwd_context.verify(payload.password, user.hashed_password):  # type: ignore
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Invalid credentials 2")
 
     now = datetime.utcnow()
 

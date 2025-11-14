@@ -5,9 +5,9 @@ from typing import List
 from database import SessionLocal
 import models
 import schemas
-from dependencies import get_db, get_current_user
+from dependencies import *
 
-router = APIRouter(prefix="/cellars", tags=["Wine Cellars"])
+router = APIRouter(prefix=f"{API_PATH_ROOT}/cellars", tags=["Wine Cellars"])
 
 
 @router.post("", response_model=schemas.WineCellarOut, status_code=status.HTTP_201_CREATED)

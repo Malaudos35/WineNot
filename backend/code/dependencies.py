@@ -10,6 +10,7 @@ import models
 security = HTTPBearer()
 JWT_SECRET = os.getenv("JWT_SECRET", "change_me_super_secret")
 
+API_PATH_ROOT = os.getenv("API_PATH_ROOT", "")
 
 def get_db():
     db = SessionLocal()
