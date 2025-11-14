@@ -36,7 +36,7 @@ for attempt in range(1, MAX_RETRIES + 1):
         break
     except Exception as e:
         # print(e)
-        logging.warning(f"Error connection DB: {attempt} {e} a")
+        logging.warning(f"Error connection DB: {attempt} {e} - Retrying in {DELAY_BETWEEN_RETRIES} seconds...")
         print(e)
         time.sleep(DELAY_BETWEEN_RETRIES)
 

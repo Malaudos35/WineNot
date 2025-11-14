@@ -24,6 +24,9 @@ cryptography==46.0.3
 # Gestion des variables d'environnement
 python-dotenv==1.2.1
 
-# Logging / utilitaires
-# loguru==0.7.0
-# logging==0.4.9.6
+# MinIO et stockage d'objets
+boto3==1.40.73
+
+# Scraping et requêtes HTTP
+requests==2.32.5
+playwright==1.56.0

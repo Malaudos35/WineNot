@@ -7,18 +7,19 @@ WORKDIR /tmp
 # Installer tzdata pour les informations de fuseau horaire
 RUN apt-get update 
 RUN apt-get upgrade -y
-RUN apt-get install -y tzdata
+RUN apt-get install -y tzdata >> /dev/null
 
 RUN pip install --upgrade pip
-
-# Définir le fuseau horaire sur Paris
-ENV TZ=Europe/Paris
 
 # Copier le fichier requirements.txt dans le conteneur
 COPY requirements.txt .
 
 # Installer les dépendances Python
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Installer les navigateurs nécessaires pour Playwright
+RUN playwright install >> /dev/null
+RUN playwright install-deps >> /dev/null
 
 WORKDIR /app
 

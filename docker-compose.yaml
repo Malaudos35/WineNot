@@ -24,6 +24,30 @@ services:
       timeout: 5s
       retries: 10
 
+  minio:
+    image: minio/minio:latest
+    container_name: minio1
+    hostname: minio1
+    # command: server http://minio{1...4}/data --console-address ":9001" # Mode distribué
+    command: server /data --console-address ":9001"  # Mode mono-nœud
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+
+      retries: 3
+      timeout: 5s
+    environment:
+      - TZ=${TZ}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - ./minio/data1:/data
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "9000:9000"  # Port API S3
+      - "9001:9001"  # Port console web
+
   backend:
     build:
       context: backend
@@ -31,13 +55,19 @@ services:
     ports:
       - "5000:5000"
     environment:
+      # Globales
       - TZ=${TZ}
       - FLASK_ENV=${FLASK_ENV}
+      # DB
       - DATABASE_URL=${DATABASE_URL}
       - ADMIN_NAME=${ADMIN_NAME}
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - API_PATH_ROOT=${API_PATH_ROOT}
+      # S3 MinIO
+      - MINIO_API_URL=${MINIO_API_URL}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     volumes:
       # - ./backend/code:/app:ro
         - ./backend/code:/app
@@ -60,24 +90,12 @@ services:
     environment:
       - TZ=${TZ}
       - API_URL=${API_URL}
+      - SERVER_NAME=${SERVER_NAME}
     volumes:
       - ./frontend/code:/var/www/html
+      - ./frontend/conf/apache2.conf:/etc/apache2/apache2.conf:ro
     depends_on:
       - backend
-  # frontend2:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: frontend.Dockerfile
-  #   container_name: frontend
-  #   ports:
-  #     # - "3000:3000"
-  #     - "80:80"
-  #   networks:
-  #     - frontend
-  #   environment:
-  #     - VITE_API_URL=${VITE_API_URL}
-  #   depends_on:
-  #     - backend
 
 networks:
   frontend:

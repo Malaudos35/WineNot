@@ -10,9 +10,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Active les modules Apache
 RUN a2enmod rewrite
 
-# Copie les fichiers du projet dans le conteneur
-COPY . /var/www/html/
-
 # Donne les permissions nécessaires
 RUN chown -R www-data:www-data /var/www/html/
 
