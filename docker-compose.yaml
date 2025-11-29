@@ -1,9 +1,10 @@
 services:
   db:
     container_name: db
-    build:
-      context: db
-      dockerfile: db.Dockerfile
+    image: mysql:9.5
+    # build:
+    #   context: db
+    #   dockerfile: db.Dockerfile
     ports:
       - "3306:3306"  # Port MySQL
     environment:
@@ -15,6 +16,7 @@ services:
     volumes:
       - ./db/sql:/docker-entrypoint-initdb.d
       # - postgres_data:/var/lib/postgresql/data  # Volume persistant pour la base de données
+      - ./db/my.conf:/etc/mysql/conf.d/my.conf
     networks:
       - backend
     restart: unless-stopped
@@ -24,29 +26,30 @@ services:
       timeout: 5s
       retries: 10
 
-  minio:
-    image: minio/minio:latest
-    container_name: minio1
-    hostname: minio1
-    # command: server http://minio{1...4}/data --console-address ":9001" # Mode distribué
-    command: server /data --console-address ":9001"  # Mode mono-nœud
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-
-      retries: 3
-      timeout: 5s
-    environment:
-      - TZ=${TZ}
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
-    volumes:
-      - ./minio/data1:/data
-    networks:
-      - frontend
-      - backend
-    ports:
-      - "9000:9000"  # Port API S3
-      - "9001:9001"  # Port console web
+  # minio:
+  #   image: minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1
+  #   # build:
+  #   #   context: minio
+  #   #   dockerfile: minio.Dockerfile
+  #   # command: server http://minio{1...4}/data --console-address ":9001" # Mode distribué
+  #   command: server /data --console-address ":9001" # Mode mono-nœud
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+  #     retries: 3
+  #     timeout: 5s
+  #   environment:
+  #     - TZ=${TZ}
+  #     - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+  #     - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+  #   # volumes:
+  #   #   - ./minio/data1:/data
+  #   networks:
+  #     - frontend
+  #     - backend
+  #   ports:
+  #     - "9000:9000"  # Port API S3
+  #     - "9001:9001"  # Port console web
+  #     - "9090:9090"  # Port console web (à adapter si nécessaire)
 
   backend:
     build:
@@ -78,6 +81,35 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+
+  # scrapper:
+  #   build:
+  #     context: scrapper
+  #     dockerfile: scrapper2.Dockerfile
+  #   ports:
+  #     - "5001:5001"
+  #   environment:
+  #     # Globales
+  #     - TZ=${TZ}
+  #     - FLASK_ENV=${FLASK_ENV}
+  #     # DB
+  #     - DATABASE_URL=${DATABASE_URL}
+  #     - ADMIN_NAME=${ADMIN_NAME}
+  #     - ADMIN_USERNAME=${ADMIN_USERNAME}
+  #     - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+  #     - API_PATH_ROOT=${API_PATH_ROOT}
+  #     # S3 MinIO
+  #     - MINIO_API_URL=${MINIO_API_URL}
+  #     - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+  #     - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+  #   volumes:
+  #     # - ./scrapper/code:/app:ro
+  #       - ./scrapper/code:/app
+  #   networks:
+  #     - frontend
+  #     - backend
+  #   restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend

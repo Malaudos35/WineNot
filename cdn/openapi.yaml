@@ -1,0 +1,171 @@
+openapi: 3.0.3
+info:
+  title: API de test pour la gestion des fichiers et du statut des nœuds
+  description: API permettant de gérer le statut des nœuds et les fichiers associés.
+  version: 1.0.0
+servers:
+- url: http://localhost:5000
+  description: Serveur local de test
+
+paths:
+  /status:
+    get:
+      summary: Récupère le statut du nœud
+      responses:
+        '200':
+          description: Statut du nœud récupéré avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "alive"
+                  node:
+                    type: string
+                    example: "node1:5000"
+                  files:
+                    type: integer
+                    example: 50
+    post:
+      summary: Envoie un identifiant de nœud
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  example: "node1:5000"
+      responses:
+        '200':
+          description: Identifiant de nœud reçu avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "node received"
+
+  /files:
+    get:
+      summary: Liste des fichiers disponibles
+      responses:
+        '200':
+          description: Liste des fichiers récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  file:
+                    type: array
+                    items:
+                      type: string
+                    example: [ "file1.jpg", "file2.png" ]
+    post:
+      summary: Envoie un fichier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  example: "node1:5000"
+                file:
+                  type: string
+                  example: "picture.jpg"
+      responses:
+        '200':
+          description: Fichier reçu avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "file received"
+    put:
+      summary: Met à jour un fichier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  example: "node1:5000"
+                file:
+                  type: string
+                  example: "picture.jpg"
+      responses:
+        '200':
+          description: Fichier mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "file received"
+    delete:
+      summary: Supprime un fichier
+      parameters:
+      - in: query
+        name: id
+        required: true
+        schema:
+          type: string
+        description: Identifiant du nœud
+      - in: query
+        name: file
+        required: true
+        schema:
+          type: string
+        description: Nom du fichier à supprimer
+      responses:
+        '200':
+          description: Fichier supprimé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "file received"
+
+  /files/{filename}:
+    get:
+      summary: Récupère une image spécifique
+      parameters:
+      - in: path
+        name: filename
+        required: true
+        schema:
+          type: string
+        description: Nom de l'image à récupérer
+      responses:
+        '200':
+          description: Image récupérée avec succès
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary

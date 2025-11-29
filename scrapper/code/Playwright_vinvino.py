@@ -1,9 +1,10 @@
 from playwright.sync_api import sync_playwright
 import re
-# import requests
+import requests
 import json
 import time
 import random
+import imageio.v3 as iio
 
 # Liste de User-Agents pour simuler différents navigateurs
 USER_AGENTS = [
@@ -76,6 +77,8 @@ def scrape_vivino_info(query):
             # Récupérer le prix
             price_element = page.query_selector(".purchaseAvailability__currentPrice--3mO4u")
             price = price_element.inner_text() if price_element else "Non disponible"
+            
+            price = price.replace(" ", "").replace(" ", "").replace("€", "").replace(",", ".") .strip()
 
             # Récupérer les informations du vignoble
             wine_facts = {}
@@ -88,6 +91,7 @@ def scrape_vivino_info(query):
                     fact_text = fact.inner_text().strip()
                     wine_facts[header_text] = fact_text
 
+            wine_facts["Teneur en alcool"] = wine_facts["Teneur en alcool"].replace(" %", "")
             # Récupérer la description du vin
             description_element = page.query_selector("td.wineFacts__fact--3BAsi span:last-child")
             description = description_element.inner_text() if description_element else "Non disponible"
@@ -118,18 +122,19 @@ def scrape_vivino_info(query):
                 return False
 
             # Trouver l'image avec la plus haute résolution (celle avec _x960 ou _x1200)
-            highest_resolution_url = None
-            for url in vivino_image_urls:
-                url = url.split(" ")[0]
-                if "_x960." in url:
+            highest_resolution_url = vivino_image_urls[0]
+            big_res = 0
+            for urll in vivino_image_urls:
+                url = urll.replace(" 2x", "").replace(" 1x", "").replace(" ", "")
+                print(url)
+                response = requests.get(url)
+
+                img = iio.imread(response.content)
+                h, w = img.shape[:2]
+                res = h*w
+                if res > big_res:
+                    big_res = res
                     highest_resolution_url = url
-                    break
-                elif "_x1200." in url:
-                    highest_resolution_url = url
-                    break
-            else:
-                # Si aucune image haute résolution n'est trouvée, prendre la première
-                highest_resolution_url = vivino_image_urls[0]
 
             # Retourner un JSON avec toutes les informations
             result = {
@@ -139,7 +144,7 @@ def scrape_vivino_info(query):
                 "description": description,
                 "image_url": highest_resolution_url
             }
-
+            
             return result
 
         except Exception as e:
@@ -148,6 +153,7 @@ def scrape_vivino_info(query):
 
 if __name__ == "__main__":
     result = scrape_vivino_info("Petrus 1987")
+    print(result)
     if result:
         with open("vin_info.json", "w", encoding="utf-8") as f:
             json.dump(result, f, ensure_ascii=False, indent=4)

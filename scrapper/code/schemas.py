@@ -13,8 +13,7 @@ class TokenOut(BaseModel):
     created_at: datetime
 
     class Config:
-        # orm_mode = True
-        from_attributes = True
+        orm_mode = True
 
 
 class ErrorOut(BaseModel):
@@ -51,8 +50,7 @@ class UserOut(BaseModel):
     updated_at: datetime
 
     class Config:
-        # orm_mode = True
-        from_attributes = True
+        orm_mode = True
 
 
 # ---- Permissions ----
@@ -67,8 +65,7 @@ class PermissionOut(BaseModel):
     description: Optional[str]
 
     class Config:
-        # orm_mode = True
-        from_attributes = True
+        orm_mode = True
 
 
 # ---- Wine Cellars ----
@@ -94,8 +91,7 @@ class WineCellarOut(BaseModel):
     updated_at: datetime
 
     class Config:
-        # orm_mode = True
-        from_attributes = True
+        orm_mode = True
 
 
 # ---- Wine Bottles ----

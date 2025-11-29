@@ -6,7 +6,7 @@ from database import SessionLocal
 import models
 import schemas
 from dependencies import *
-# from Playwright_vinvino import scrape_vivino_info
+from Playwright_vinvino import scrape_vivino_info
 import logging
 
 router = APIRouter(prefix=API_PATH_ROOT , tags=["Wine Bottles"])
@@ -71,21 +71,21 @@ def add_bottle(
     scraped = None
 
     # LOG : vérifier si scrape vaut False
-    # if not payload.scrape:
-    #     logging.warning("⚠️ scrape=False → skipping Vivino scraping.")
-    # else:
-    #     logging.info(f"Scrape=True → Starting Vivino scraping for: {payload.name} ({payload.vintage})")
-    #     query = f"{payload.name} {payload.vintage or ''}".strip()
-    #     logging.info(f"Vivino query used: '{query}'")
+    if not payload.scrape:
+        logging.warning("⚠️ scrape=False → skipping Vivino scraping.")
+    else:
+        logging.info(f"Scrape=True → Starting Vivino scraping for: {payload.name} ({payload.vintage})")
+        query = f"{payload.name} {payload.vintage or ''}".strip()
+        logging.info(f"Vivino query used: '{query}'")
 
-    #     try:
-    #         scraped = scrape_vivino_info(query)
-    #         logging.info(f"Scraped result received: {scraped}")
-    #     except Exception as e:
-    #         logging.error("❌ Error during scrape_vivino_info execution:")
-    #         logging.error(str(e))
-    #         logging.error(traceback.format_exc())
-    #         scraped = None
+        try:
+            scraped = scrape_vivino_info(query)
+            logging.info(f"Scraped result received: {scraped}")
+        except Exception as e:
+            logging.error("❌ Error during scrape_vivino_info execution:")
+            logging.error(str(e))
+            logging.error(traceback.format_exc())
+            scraped = None
 
     # helper
     def get_field(field, fallback):

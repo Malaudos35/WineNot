@@ -1,0 +1,37 @@
+services:
+  node1:
+    build: .
+    container_name: cdn_node1
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./data1:/data
+      - ./code:/app/
+    environment:
+      - NODE_ID=node1:5000
+      - NEIGHBORS=${NEIGHBORS}
+      - SEED=999
+
+  node2:
+    build: .
+    container_name: cdn_node2
+    ports:
+      - "5002:5000"
+    volumes:
+      - ./data2:/data
+      - ./code:/app/
+    environment:
+      - NODE_ID=node2:5000
+      - NEIGHBORS=${NEIGHBORS}
+
+  node3:
+    build: .
+    container_name: cdn_node3
+    ports:
+      - "5003:5000"
+    volumes:
+      - ./data3:/data
+      - ./code:/app/
+    environment:
+      - NODE_ID=node3:5000
+      - NEIGHBORS=${NEIGHBORS}
