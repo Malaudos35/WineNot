@@ -1,0 +1,12 @@
+name: Hello World Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  say-hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dire bonjour
+        run: echo "Hello, World!"
