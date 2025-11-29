@@ -1,0 +1,9 @@
+[MASTER]
+ignore=CVS
+disable=
+    C0114,  # missing-module-docstring
+    C0115,  # missing-class-docstring
+    C0116,  # missing-function-docstring
+    W0511,  # todo
+    E0401,  # Unable to import 'database' (import-error)
+    R0903,  # Too few public methods (0/2) (too-few-public-methods)

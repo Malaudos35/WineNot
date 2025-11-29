@@ -92,7 +92,7 @@ environment:
   - MYSQL_PASSWORD=secure_password
   - MYSQL_DATABASE=wine_cellar
   - MYSQL_ROOT_PASSWORD=root_password
-  - DATABASE_URL=mysql+pymysql://wine_user:secure_password@db:3306/wine_cellar
+  - database_url=mysql+pymysql://wine_user:secure_password@db:3306/wine_cellar
 ```
 
 ---

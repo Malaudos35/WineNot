@@ -1,15 +1,17 @@
 # routes/admin.py
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
-from dependencies import *
-from models import User, WineCellar, WineBottle, Permission
-import schemas
-from passlib.context import CryptContext
 import os
-from dotenv import load_dotenv
 import logging
+from fastapi import APIRouter, Depends, status, HTTPException
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from passlib.context import CryptContext
+from dotenv import load_dotenv
 
-# prefix="/admin", 
+from models import User, WineCellar, WineBottle, Permission
+from dependencies import API_PATH_ROOT, get_db
+# import schemas
+
+# prefix="/admin",
 router = APIRouter(prefix=API_PATH_ROOT, tags=["admin"])
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -18,7 +20,6 @@ load_dotenv()
 
 @router.get("/clean", status_code=status.HTTP_201_CREATED)
 def clean_database(db: Session = Depends(get_db)):
-    # Vider toutes les tables dans l'ordre pour respecter les FK
     try:
         db.query(WineBottle).delete()
         db.query(WineCellar).delete()
@@ -26,24 +27,50 @@ def clean_database(db: Session = Depends(get_db)):
         db.query(User).delete()
         db.commit()
     except Exception as e:
-        logging.warning(e)
+        logging.exception("Unexpected error while cleaning database: %s", e)
+        db.rollback()
+        raise
     return {"detail": "Database cleaned"}
 
 @router.get("/init", status_code=status.HTTP_201_CREATED)
 def init_database(db: Session = Depends(get_db)):
-    # Vider toutes les tables dans l'ordre pour respecter les FK
+    # Récupérer les informations d'admin depuis les variables d'environnement
+    name = os.getenv("ADMIN_NAME", "admin@example.com")
+    username = os.getenv("ADMIN_USERNAME", "admin")
+    password = os.getenv("ADMIN_PASSWORD", "admin")
+
     try:
-        name=os.getenv("ADMIN_NAME", "admin@example.com")
-        username=os.getenv("ADMIN_USERNAME", "admin")
-        password=os.getenv("ADMIN_PASSWORD", "admin")
-        hashed = pwd_context.hash(password[:72])
-        user = User(email=name, username=username, hashed_password=hashed, is_admin=True)
+        # Vérifier si un admin existe déjà
+        existing_admin = db.query(User).filter(User.is_admin).first() # == True
+        if existing_admin:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Admin already exists")
+
+        # Hasher le mot de passe et créer l'utilisateur admin
+        hashed_password = pwd_context.hash(password[:72])
+        user = User(email=name, username=username, hashed_password=hashed_password, is_admin=True)
+
         db.add(user)
         db.commit()
         db.refresh(user)
-    except Exception as e:
-        logging.warning(e)
+    except IntegrityError as exc:
+        logging.warning("Integrity error while creating admin: %s", exc)
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Admin already exists or data integrity issue") from exc
+    except SQLAlchemyError as exc:
+        logging.warning("Database error while creating admin: %s", exc)
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail="Database error") from exc
+    except Exception as exc:
+        logging.exception("Unexpected error while creating admin: %s", exc)
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail="Unexpected error") from exc
+
     return {"detail": "Admin created"}
+
 
 @router.get("/", status_code=status.HTTP_201_CREATED)
 def home(db: Session = Depends(get_db)):

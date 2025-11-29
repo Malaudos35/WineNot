@@ -1,18 +1,26 @@
 # models.py
+from datetime import datetime
+import uuid
 from sqlalchemy import (
     Column, Integer, String, DateTime, Boolean, ForeignKey, Text, Float, Table
 )
 from sqlalchemy.orm import relationship
-from database import Base
-from datetime import datetime
-import uuid
+
+from database import Base # type: ignore
 
 # Association table: users <-> permissions (many-to-many)
 user_permissions = Table(
     "user_permissions",
     Base.metadata,
-    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
-    Column("permission_id", String(36), ForeignKey("permissions.id", ondelete="CASCADE"), primary_key=True)
+    Column("user_id",
+           Integer,
+           ForeignKey("users.id", ondelete="CASCADE"),
+           primary_key=True
+           ),
+    Column("permission_id", String(36),
+           ForeignKey("permissions.id", ondelete="CASCADE"),
+           primary_key=True
+           )
 )
 
 
@@ -73,7 +81,7 @@ class WineBottle(Base):
     __tablename__ = "wine_bottles"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    cellar_id = Column(String(36), ForeignKey("wine_cellars.id", ondelete="CASCADE"), nullable=False)
+    cellar_id = Column(String(36), ForeignKey("wine_cellars.id", ondelete="CASCADE"),nullable=False)
     name = Column(String(255), nullable=False)
     vintage = Column(Integer, nullable=False)
     wine_type = Column(String(64), nullable=False)

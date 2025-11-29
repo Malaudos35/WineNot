@@ -1,7 +1,7 @@
 # routes/permissions.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from database import SessionLocal
+from database import session_local
 import models
 import schemas
 from dependencies import *

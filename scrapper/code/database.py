@@ -10,29 +10,31 @@ MAX_RETRIES = 10
 TOTAL_TIMEOUT = 60
 DELAY_BETWEEN_RETRIES = TOTAL_TIMEOUT / MAX_RETRIES
 
+Base = ""
+
 for attempt in range(1, MAX_RETRIES + 1):
     try:
-        DATABASE_URL = os.getenv(
-            "DATABASE_URL",
+        database_url = os.getenv(
+            "database_url",
             "mysql+pymysql://wine_user:secure_password@localhost:3306/wine_cellar"
         )
 
-        logging.info(f"##### DATABASE_URL = {DATABASE_URL} ######")
+        logging.info(f"##### database_url = {database_url} ######")
         
         # Synchronous engine & session (simple and compatible)
-        engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+        engine = create_engine(database_url, pool_pre_ping=True)
         
         with engine.connect() as conn:      # test if connected to db
             conn.execute(text("SELECT 1"))
         print(f"[database] Connected to DB on attempt {attempt}")
 
-        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-        db = SessionLocal()
+        db = session_local()
         
         Base = declarative_base()
         
-        logging.info(f"##### Start DATABASE_URL = {DATABASE_URL} ######")
+        logging.info(f"##### Start database_url = {database_url} ######")
         break
     except Exception as e:
         # print(e)
@@ -46,7 +48,6 @@ def init_db():
     Import models where Base metadata is declared and create tables.
     Called at startup.
     """
-    import models  # noqa: F401 - models registers metadata on Base
     Base.metadata.create_all(bind=engine) # type: ignore
 
 init_db()

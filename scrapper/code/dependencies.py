@@ -2,7 +2,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from database import SessionLocal
+from database import session_local
 import os
 import jwt
 import models
@@ -13,7 +13,7 @@ JWT_SECRET = os.getenv("JWT_SECRET", "change_me_super_secret")
 API_PATH_ROOT = os.getenv("API_PATH_ROOT", "")
 
 def get_db():
-    db = SessionLocal()
+    db = session_local()
     try:
         yield db
     finally:

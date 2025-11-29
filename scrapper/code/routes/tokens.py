@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import os
 import jwt
 from passlib.context import CryptContext
-from database import SessionLocal
+from database import session_local
 import models
 import schemas
 from dependencies import *
@@ -23,7 +23,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
 
 
 def get_db():
-    db = SessionLocal()
+    db = session_local()
     try:
         yield db
     finally:

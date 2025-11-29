@@ -93,7 +93,7 @@ services:
   #     - TZ=${TZ}
   #     - FLASK_ENV=${FLASK_ENV}
   #     # DB
-  #     - DATABASE_URL=${DATABASE_URL}
+  #     - database_url=${database_url}
   #     - ADMIN_NAME=${ADMIN_NAME}
   #     - ADMIN_USERNAME=${ADMIN_USERNAME}
   #     - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -110,24 +110,24 @@ services:
   #     - backend
   #   restart: unless-stopped
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: frontend.Dockerfile
-    container_name: frontend
-    ports:
-      - "80:80"
-    networks:
-      - frontend
-    environment:
-      - TZ=${TZ}
-      - API_URL=${API_URL}
-      - SERVER_NAME=${SERVER_NAME}
-    volumes:
-      - ./frontend/code:/var/www/html
-      - ./frontend/conf/apache2.conf:/etc/apache2/apache2.conf:ro
-    depends_on:
-      - backend
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: frontend.Dockerfile
+  #   container_name: frontend
+  #   ports:
+  #     - "80:80"
+  #   networks:
+  #     - frontend
+  #   environment:
+  #     - TZ=${TZ}
+  #     - API_URL=${API_URL}
+  #     - SERVER_NAME=${SERVER_NAME}
+  #   volumes:
+  #     - ./frontend/code:/var/www/html
+  #     - ./frontend/conf/apache2.conf:/etc/apache2/apache2.conf:ro
+  #   depends_on:
+  #     - backend
 
 networks:
   frontend:

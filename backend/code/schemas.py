@@ -1,7 +1,7 @@
 # schemas.py
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List
+from typing import Optional
 from datetime import datetime
+from pydantic import BaseModel, EmailStr, Field
 
 
 # ---- Shared / base ----
@@ -144,4 +144,3 @@ class WineBottleOut(BaseModel):
 
     class Config:
         from_attributes = True
-
