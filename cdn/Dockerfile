@@ -6,5 +6,5 @@ RUN pip install -r requirements.txt
 
 EXPOSE 5000
 
-CMD ["python", "main.py"]
-# CMD ["gunicorn", "-c", "gunicorn.conf.py", "main:app"]
+# CMD ["python", "main.py"]
+CMD ["uvicorn", "app:app", "--reload", "--port", "5000", "--host", "0.0.0.0"]
