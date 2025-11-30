@@ -1,0 +1,61 @@
+name: Backend CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:dind
+        ports:
+          - 2375:2375
+        options: >-
+          --dns 8.8.8.8
+          --dns 1.1.1.1
+
+    env:
+      DOCKER_HOST: tcp://localhost:2375
+      DOCKER_TLS_VERIFY: ""
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Install pytest + requests
+        run: |
+          pip install pytest requests
+
+      - name: Run lunch.sh (build + run API inside Docker)
+        run: |
+          chmod +x lunch.sh
+          ./lunch.sh
+
+      - name: Wait for API to be ready (max 45 sec)
+        run: |
+          echo "Waiting for API at http://localhost:5000/api ..."
+          for i in {1..45}; do
+            if curl -s http://localhost:5000/api >/dev/null; then
+              echo "API is up!"
+              exit 0
+            fi
+            echo "… retry ($i/45)"
+            sleep 1
+          done
+          echo "ERROR: API did not start in time."
+          docker ps -a
+          exit 1
+
+      - name: Run backend tests
+        env:
+          BASE_URL: http://localhost:5000/api
+        run: |
+          pytest tests/ -v --maxfail=1

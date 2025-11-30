@@ -32,3 +32,5 @@ boto3==1.40.73
 requests==2.32.5
 # playwright==1.56.0
 # imageio==2.37.2
+
+# pip install pytest pytest-cov requests python-dotenv
