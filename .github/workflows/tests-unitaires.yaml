@@ -12,33 +12,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Active Docker sur GitHub Actions (remplace dind)
-      - name: Set up Docker engine
-        uses: docker/setup-docker@v3
+      # Docker est déjà présent dans GitHub Actions : on vérifie
+      - name: Check Docker
+        run: docker --version
 
-      # Active Buildx si nécessaire
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Show docker info
-        run: docker info
-
-      - name: Install Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.12
-
-      - name: Install pytest + requests
+      # Build + start avec docker compose
+      - name: Docker Compose up
         run: |
-          pip install pytest requests
+          docker compose down --volumes || true
+          docker compose up -d --build
 
-      # Lancer ton script lunch.sh (build + run API)
-      - name: Run lunch.sh
-        run: |
-          chmod +x lunch.sh
-          ./lunch.sh
+      # Inspect containers (utile si l'API ne démarre pas)
+      - name: Show running containers
+        run: docker ps -a
 
-      # Attendre que l'API réponde
+      # Attendre que l'API soit prête (port 5000)
       - name: Wait for API to be ready
         run: |
           echo "Waiting for API on http://localhost:5000/api..."
@@ -51,9 +39,18 @@ jobs:
             sleep 1
           done
           echo "ERROR: API did not start in time."
-          docker ps -a
+          docker logs $(docker ps --format '{{.Names}}')
           exit 1
+
+      # Installer Pytest
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pytest + requests
+        run: pip install pytest requests
 
       # Lancer les tests
       - name: Run tests
-        run: pytest tests/ -v --maxfail=1
+        run: pytest tests/ -v
