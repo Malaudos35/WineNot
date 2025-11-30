@@ -57,7 +57,4 @@ jobs:
 
       # Lancer les tests
       - name: Run tests Backend
-        run: pytest backend/tests/ -v || echo "Backend tests failed"
-
-      - name: Run tests CDN
-        run: pytest cdn/tests/ -v || echo "CDN tests failed"
+        run: ./run_tests_unitaires.sh

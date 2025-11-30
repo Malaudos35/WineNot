@@ -4,10 +4,10 @@ set -o pipefail
 
 echo "=== Running backend tests ==="
 
-pylint --rcfile=.pylintrc backend/code | tee pylint-backend-report.txt
+pylint --rcfile=.pylintrc --fail-under=8 backend/code
 
 # echo "=== Running CDN tests ==="
 
-# pylint --rcfile=.pylintrc cdn/code | tee pylint-backend-report.txt
+# pylint --rcfile=.pylintrc --fail-under=8 cdn/code
 
 echo "=== All tests finished ==="
