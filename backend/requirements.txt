@@ -2,7 +2,8 @@
 
 # Framework et serveur
 fastapi==0.120.4
-uvicorn[standard]==0.38.0
+# uvicorn[standard]==0.38.0
+uvicorn==0.38.0
 
 # ORM et base de données
 sqlalchemy==2.0.44
@@ -29,4 +30,7 @@ boto3==1.40.73
 
 # Scraping et requêtes HTTP
 requests==2.32.5
-playwright==1.56.0
+# playwright==1.56.0
+# imageio==2.37.2
+
+# pip install pytest pytest-cov requests python-dotenv

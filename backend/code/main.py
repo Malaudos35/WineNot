@@ -1,13 +1,13 @@
 # main.py
-from fastapi import FastAPI
-from database import init_db
+from database import logger, init_db
+# import database
 from routes import users, tokens, permissions, cellars, bottles, admin  # import routers
 import uvicorn
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import logging
 
 print("Start")
-logging.info("##### Start #####")
+logger.info("##### Start #####")
 
 app = FastAPI(
     title="Wine Cellar Management API",
@@ -15,7 +15,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# init_db()
+init_db()
 
 # CORS (dev-friendly)
 app.add_middleware(
@@ -41,6 +41,7 @@ app.include_router(admin.router)
 def on_startup():
     # Create tables if not exist
     init_db()
+    # pass
 
 
 if __name__ == "__main__":

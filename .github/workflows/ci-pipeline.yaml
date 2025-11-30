@@ -1,4 +1,4 @@
-name: Hello World Pipeline
+name: WineNot Pipeline
 
 on:
   push:

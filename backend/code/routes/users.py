@@ -1,14 +1,13 @@
 # routes/users.py
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from database import SessionLocal
+from passlib.context import CryptContext
+
 import models
 import schemas
-from dependencies import *
-from passlib.context import CryptContext
-from typing import List
-from dependencies import get_current_user, get_db, admin_required
+from dependencies import API_PATH_ROOT, get_current_user, get_db, admin_required
 
 router = APIRouter(prefix=f"{API_PATH_ROOT}/users", tags=["Users"])
 
@@ -17,7 +16,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @router.post("", response_model=schemas.UserOut, status_code=status.HTTP_201_CREATED)
 def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
-    existing = db.query(models.User).filter((models.User.email == payload.email) | (models.User.username == payload.username)).first()
+    existing = db.query(models.User).filter((models.User.email == payload.email) |
+                                            (models.User.username == payload.username)).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email or username already registered")
 
@@ -30,14 +30,17 @@ def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 @router.get("", response_model=List[schemas.UserOut])
-def list_users(db: Session = Depends(get_db), current_user: models.User = Depends(admin_required)):
+def list_users(db: Session = Depends(get_db),
+               current_user: models.User = Depends(admin_required)):
     users = db.query(models.User).all()
+    print(current_user)
     return users
 
 
 
 @router.get("/{user_id}", response_model=schemas.UserOut)
-def get_user(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+def get_user(user_id: int, db: Session = Depends(get_db),
+             current_user: models.User = Depends(get_current_user)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
@@ -48,7 +51,8 @@ def get_user(user_id: int, db: Session = Depends(get_db), current_user: models.U
 
 
 @router.put("/{user_id}", response_model=schemas.UserOut)
-def update_user(user_id: int, payload: schemas.UserUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+def update_user(user_id: int, payload: schemas.UserUpdate, db: Session = Depends(get_db),
+                current_user: models.User = Depends(get_current_user)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
@@ -65,18 +69,20 @@ def update_user(user_id: int, payload: schemas.UserUpdate, db: Session = Depends
     try:
         db.commit()
         db.refresh(user)
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
-        raise HTTPException(status_code=400, detail="Email déjà utilisé")
+        raise HTTPException(status_code=400, detail="Email déjà utilisé") from exc
 
     return user
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(admin_required)):
+def delete_user(user_id: int, db: Session = Depends(get_db),
+                current_user: models.User = Depends(admin_required)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
     db.delete(user)
     db.commit()
-    return None
+    print(current_user)
+    # return None

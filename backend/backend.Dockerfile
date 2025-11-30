@@ -17,10 +17,6 @@ COPY requirements.txt .
 # Installer les dépendances Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Installer les navigateurs nécessaires pour Playwright
-RUN playwright install >> /dev/null
-RUN playwright install-deps >> /dev/null
-
 WORKDIR /app
 
 # Exposer le port sur lequel l'application écoute

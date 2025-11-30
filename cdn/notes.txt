@@ -1,0 +1,37 @@
+
+docker network create --driver overlay cdn_network
+
+
+GET /status
+{"status": alive, "node": "node1:5000", "files": 50}
+
+POST /add_slave json={"id": "node1:5000"}
+{"status": "node received"}
+
+
+GET /files
+{"file": ["file1.jpg", "file2.png"]}
+
+GET /files/<filename>
+file1.jpg
+
+POST /files json={"url": "node1:5000/picture.jpg"}
+{"status": "file received"}
+
+PUT /files json={"url": "node1:5000/picture.jpg"}
+{"status": "file received"}
+
+DELETE /files json={"url": "node1:5000/picture.jpg"}
+{"status": "file received"}
+
+
+
+
+
+
+
+
+
+
+
+

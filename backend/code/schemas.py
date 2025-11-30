@@ -1,7 +1,7 @@
 # schemas.py
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List
+from typing import Optional
 from datetime import datetime
+from pydantic import BaseModel, EmailStr, Field
 
 
 # ---- Shared / base ----
@@ -13,7 +13,8 @@ class TokenOut(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        # orm_mode = True
+        from_attributes = True
 
 
 class ErrorOut(BaseModel):
@@ -50,7 +51,8 @@ class UserOut(BaseModel):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        # orm_mode = True
+        from_attributes = True
 
 
 # ---- Permissions ----
@@ -65,7 +67,8 @@ class PermissionOut(BaseModel):
     description: Optional[str]
 
     class Config:
-        orm_mode = True
+        # orm_mode = True
+        from_attributes = True
 
 
 # ---- Wine Cellars ----
@@ -91,20 +94,22 @@ class WineCellarOut(BaseModel):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        # orm_mode = True
+        from_attributes = True
 
 
 # ---- Wine Bottles ----
 class WineBottleCreate(BaseModel):
     name: str
-    vintage: int
-    wine_type: str
-    region: Optional[str]
-    country: Optional[str]
-    price: Optional[float]
+    vintage: Optional[int] = None
+    wine_type: Optional[str] = None
+    region: Optional[str] = None
+    country: Optional[str] = None
+    price: Optional[float] = None
     quantity: Optional[int] = 1
     image_url: Optional[str] = None
     notes: Optional[str] = None
+    scrape: bool = False
 
 
 class WineBottleUpdate(BaseModel):
@@ -139,4 +144,3 @@ class WineBottleOut(BaseModel):
 
     class Config:
         from_attributes = True
-
