@@ -4,10 +4,8 @@ name: Pylint Pipeline
 on: [push]
 
 jobs:
-  lint:
-    name: Lint Python Code
+  lint-and-test:
     runs-on: ubuntu-latest
-    container: python:3.11 # Utilise un conteneur Docker avec Python 3.11
 
     steps:
       # Récupérer le code du dépôt
@@ -26,8 +24,7 @@ jobs:
 
       - name: Linter de code Python
         run: |
-          chmod +x *.sh
-          ./run_tests_linter.sh
+          pylint --rcfile=.pylintrc --fail-under=8 backend/code
 
       # Build + start avec docker compose
       - name: Docker Compose up
@@ -57,4 +54,5 @@ jobs:
 
       # Lancer les tests
       - name: Run tests Backend
-        run: ./run_tests_unitaires.sh
+        run: |
+          pytest backend/tests/ -v
