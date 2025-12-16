@@ -3,11 +3,11 @@
 # Cible par défaut : affiche les commandes sans les exécuter
 default:
 	@echo "Commandes disponibles :"
-	@echo "  make all       - Exécute toutes les commandes"
-	@echo "  make venv      - Crée l'environnement virtuel et installe les dépendances"
-	@echo "  make build     - Construit et lance les conteneurs Docker en arriere plan"
-	@echo "  make lunch     - Construit et lance les conteneurs Docker en interactif"
-	@echo "  make linter    - Lance le linter sur le code python"
+	@echo "  make all            - Exécute toutes les commandes"
+	@echo "  make venv           - Crée l'environnement virtuel et installe les dépendances"
+	@echo "  make build          - Construit et lance les conteneurs Docker en arriere plan"
+	@echo "  make lunch          - Construit et lance les conteneurs Docker en interactif"
+	@echo "  make linter         - Lance le linter sur le code python"
 	@echo "  make test_unitaires - Exécute les tests unitaires"
 
 # Cible pour tout exécuter
