@@ -1,58 +1,57 @@
 name: Pylint Pipeline
 
 # Déclencher le pipeline à chaque push sur n'importe quelle branche
-on: [push]
+on: [ push ]
 
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      # Récupérer le code du dépôt
-      - name: Checkout code
-        uses: actions/checkout@v4
+    # Récupérer le code du dépôt
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      # Configurer Python
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+    # Configurer Python
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
 
-      # Installer Pylint
-      - name: Install les dependances
-        run: pip install pylint pytest requests
+    # Installer Pylint
+    - name: Install les dependances
+      run: pip install pylint pytest requests
 
-      - name: Linter de code Python
-        run: |
-          pylint --rcfile=.pylintrc --fail-under=8 backend/code
+    - name: Linter de code Python
+      run: |
+        make linter
+        # pylint --rcfile=.pylintrc --fail-under=8 backend/code
 
-      # Build + start avec docker compose
-      - name: Docker Compose up
-        run: |
-          docker compose down --volumes || true
-          docker compose up -d --build
+    # Build + start avec docker compose
+    - name: Docker Compose up
+      run: |
+        docker compose down --volumes || true
+        # docker compose up -d --build
+        docker compose up -d --build db backend
 
-      # Inspect containers (utile si l'API ne démarre pas)
-      - name: Show running containers
-        run: docker ps -a
+    # Attendre que l'API soit prête (port 5000)
+    - name: Wait for API to be ready
+      run: |
+        echo "Waiting for API on http://localhost:5000/api..."
+        for i in {1..45}; do
+          if curl -s http://localhost:5000/api >/dev/null; then
+            echo "API is UP!"
+            exit 0
+          fi
+          echo "Retry ($i/45)..."
+          sleep 1
+        done
+        echo "ERROR: API did not start in time."
+        docker logs $(docker ps --format '{{.Names}}')
+        exit 1
 
-      # Attendre que l'API soit prête (port 5000)
-      - name: Wait for API to be ready
-        run: |
-          echo "Waiting for API on http://localhost:5000/api..."
-          for i in {1..45}; do
-            if curl -s http://localhost:5000/api >/dev/null; then
-              echo "API is UP!"
-              exit 0
-            fi
-            echo "Retry ($i/45)..."
-            sleep 1
-          done
-          echo "ERROR: API did not start in time."
-          docker logs $(docker ps --format '{{.Names}}')
-          exit 1
-
-      # Lancer les tests
-      - name: Run tests Backend
-        run: |
-          pytest backend/tests/ -v
+    # Lancer les tests
+    - name: Run tests Backend
+      run: |
+        make test_unitaires
+        # pytest backend/tests/ -v

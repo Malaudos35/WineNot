@@ -6,4 +6,4 @@ docker compose down
 
 # docker compose pull
 
-docker compose up #--build
+docker compose up --build

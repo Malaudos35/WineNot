@@ -10,8 +10,38 @@ import os
 import time
 from urllib.parse import urlparse
 import multiprocessing
+from contextlib import asynccontextmanager
+import threading
+from fastapi import FastAPI
 import requests
-from constantes import logger, FILE_DIRECTORY, NODE_ID
+
+
+from constantes import logger, FILE_DIRECTORY, NODE_ID, neighbors_lock, ALL_NEIGHBORS, HEARTBEAT_INTERVAL
+def init_node():
+    """
+    Initialise le nœud en synchronisant les fichiers avec tous les voisins.
+    """
+    logger.warning(f"[{NODE_ID}] Démarrage de init_node...")
+    for _ in range(3):
+        time.sleep(HEARTBEAT_INTERVAL)
+        with neighbors_lock:
+            for neighbor in ALL_NEIGHBORS:
+                syncrinize_file_to_master(neighbor)
+
+# Définissez une fonction de gestion du cycle de vie
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # Code à exécuter au démarrage
+    print("Démarrage de l'application...")
+    # Lancer init_node dans un thread séparé pour ne pas bloquer le serveur
+    threading.Thread(target=init_node, daemon=True).start()
+    yield  # L'application reste active ici
+    # Code à exécuter à l'arrêt (si nécessaire)
+    print("Arrêt de l'application...")
+
+# Créez l'application avec le gestionnaire de cycle de vie
+app = FastAPI(lifespan=lifespan)
+
 
 def download_file_from_url(url: str, file_directory: str, filname="", max_retries=3):
     """

@@ -10,9 +10,10 @@ import os
 import random
 import threading
 import logging
-from flask import Flask
 
 # Configuration
+logger = logging
+
 NODE_ID = os.getenv("NODE_ID", "node1:5000")
 ALL_NEIGHBORS = os.getenv("NEIGHBORS", "node1:5000,node2:5000,node3:5000").split(",")
 try:
@@ -24,7 +25,7 @@ FILE_DIRECTORY = "/data"
 SEED = str(os.getenv("SEED", random.randint(100, 999)))
 os.environ["SEED"]=SEED
 
-HEARTBEAT_INTERVAL = 10
+HEARTBEAT_INTERVAL = 5
 HEARTBEAT_TIMEOUT = 5  # Augmenté pour éviter les timeouts
 
 # Variables partagées protégées par verrou
@@ -33,5 +34,3 @@ MASTER = "" # 0,1 master
 SLAVES = {} # 0,All slaves
 
 neighbors_lock = threading.Lock()
-logger = logging
-app = Flask(__name__)
