@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "winenot.fullname" . }}-db
+  labels:
+    {{- include "winenot.labels" . | nindent 4 }}
+    app.kubernetes.io/component: db
+spec:
+  type: {{ .Values.mysql.service.type }}
+  ports:
+    - name: mysql
+      port: {{ .Values.mysql.service.port }}
+      targetPort: mysql
+  selector:
+    app.kubernetes.io/name: {{ include "winenot.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: db
