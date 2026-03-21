@@ -1,7 +1,6 @@
 # main.py
 from fastapi import FastAPI
-from database import init_db
-from routes import users, tokens, permissions, cellars, bottles, admin  # import routers
+from routes import google
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 import logging
@@ -27,20 +26,17 @@ app.add_middleware(
 )
 
 # include routers
-app.include_router(tokens.router)
-app.include_router(users.router)
-app.include_router(permissions.router)
-app.include_router(cellars.router)
-app.include_router(bottles.router)
-app.include_router(admin.router)
+app.include_router(google.router)
 
 
 
 
-@app.on_event("startup")
-def on_startup():
-    # Create tables if not exist
-    init_db()
+
+# @app.on_event("startup")
+# def on_startup():
+#     # Create tables if not exist
+#     # init_db()
+#     pass
 
 
 if __name__ == "__main__":

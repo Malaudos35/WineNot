@@ -51,12 +51,25 @@ services:
   #     - "9001:9001"  # Port console web
   #     - "9090:9090"  # Port console web (à adapter si nécessaire)
 
+  cdn:
+    build:
+      context: cdn
+      dockerfile: cdn.Dockerfile
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./data1:/data
+      - ./code:/app/
+    environment:
+      - NODE_ID=node1:5000
+      - NEIGHBORS=${NEIGHBORS}
+
   backend:
     build:
       context: backend
       dockerfile: backend.Dockerfile
     ports:
-      - "5000:5000"
+      - "5010:5000"
     environment:
       # Globales
       - TZ=${TZ}
@@ -71,6 +84,8 @@ services:
       - MINIO_API_URL=${MINIO_API_URL}
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      # Scrapper
+      - PLAYWRIGHT_SERVER_URL=${PLAYWRIGHT_SERVER_URL}
     volumes:
       # - ./backend/code:/app:ro
         - ./backend/code:/app
@@ -87,21 +102,21 @@ services:
   #     context: scrapper
   #     dockerfile: scrapper2.Dockerfile
   #   ports:
-  #     - "5001:5001"
+  #     - "5020:5000"
   #   environment:
   #     # Globales
   #     - TZ=${TZ}
   #     - FLASK_ENV=${FLASK_ENV}
   #     # DB
-  #     - database_url=${database_url}
+  #     - DATABASE_URL=${DATABASE_URL}
   #     - ADMIN_NAME=${ADMIN_NAME}
   #     - ADMIN_USERNAME=${ADMIN_USERNAME}
   #     - ADMIN_PASSWORD=${ADMIN_PASSWORD}
   #     - API_PATH_ROOT=${API_PATH_ROOT}
   #     # S3 MinIO
-  #     - MINIO_API_URL=${MINIO_API_URL}
-  #     - MINIO_ROOT_USER=${MINIO_ROOT_USER}
-  #     - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+  #     # - MINIO_API_URL=${MINIO_API_URL}
+  #     # - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+  #     # - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
   #   volumes:
   #     # - ./scrapper/code:/app:ro
   #       - ./scrapper/code:/app
@@ -109,6 +124,24 @@ services:
   #     - frontend
   #     - backend
   #   restart: unless-stopped
+
+  playwright:
+    build:
+      context: scrapper
+      dockerfile: scrapper3.Dockerfile
+    command: ["npx", "playwright", "run-server", "--port=3000", "--host=0.0.0.0"]
+    ports:
+      - "3000:3000"
+    environment:
+      # Globales
+      - TZ=${TZ}
+    # volumes:
+    #   # - ./scrapper/code:/app:ro
+    #     - ./scrapper/code:/app
+    networks:
+      - frontend
+      - backend
+    # restart: unless-stopped
 
   # frontend:
   #   build:
