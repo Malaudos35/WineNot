@@ -29,6 +29,7 @@ RUN apt-get update && \
     libasound2 \
     libxcursor1 \
     libgtk-3-0 \
+    libgl1 \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
