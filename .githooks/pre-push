@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "${SKIP_IMAGE_SCAN:-0}" == "1" ]]; then
+  echo "[pre-push] SKIP_IMAGE_SCAN=1, image scan skipped."
+  exit 0
+fi
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+make -C "$REPO_ROOT" scan_images_local

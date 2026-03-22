@@ -7,8 +7,8 @@ import io
 
 # from dependencies import GOOGLE_API_KEY, GOOGLE_CSE_ID
 
-GOOGLE_API_KEY = "AIzaSyCx9T8hsR1bB_uQAXdUwyW8nr86hQroFaU" # "Google API key"
-GOOGLE_CSE_ID = "45105fc43859c4fa7" # "Custom Search Engine ID"
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
 
 def google_search(
     recherche: str,
