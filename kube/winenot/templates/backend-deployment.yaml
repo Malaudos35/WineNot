@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "winenot.fullname" . }}-backend
+  labels:
+    {{- include "winenot.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "winenot.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "winenot.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: backend
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 5000
+          env:
+            - name: TZ
+              value: {{ .Values.global.timezone | quote }}
+            - name: FLASK_ENV
+              value: {{ .Values.backend.env.flaskEnv | quote }}
+            - name: API_PATH_ROOT
+              value: {{ .Values.backend.env.apiPathRoot | quote }}
+            - name: DATABASE_URL
+              value: mysql+pymysql://$(MYSQL_USER):$(MYSQL_PASSWORD)@{{ include "winenot.fullname" . }}-db:3306/$(MYSQL_DATABASE)
+            - name: MINIO_API_URL
+              value: {{ .Values.backend.env.minioApiUrl | quote }}
+            - name: PLAYWRIGHT_SERVER_URL
+              value: {{ default (printf "http://%s-playwright:%d" (include "winenot.fullname" .) (int .Values.playwright.service.port)) .Values.backend.env.playwrightServerUrl | quote }}
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "winenot.fullname" . }}-secrets
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "winenot.fullname" . }}-secrets
+                  key: MYSQL_PASSWORD
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "winenot.fullname" . }}-secrets
+                  key: MYSQL_DATABASE
+            - name: ADMIN_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "winenot.fullname" . }}-secrets
+                  key: ADMIN_NAME
+            - name: ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "winenot.fullname" . }}-secrets
+                  key: ADMIN_USERNAME
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "winenot.fullname" . }}-secrets
+                  key: ADMIN_PASSWORD
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

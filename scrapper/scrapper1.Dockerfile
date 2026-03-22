@@ -23,7 +23,9 @@ RUN apt-get install -y tzdata \
     libxfixes3\
     libxrandr2\
     libgbm1\
-    libasound2t64 >> /dev/null
+    libasound2t64\
+    libgl1-mesa-glx\
+    libglib2.0-0 >> /dev/null
     # libXcursor.so.1\
     # libgtk-3.so.0\
     # libgdk-3.so.0
@@ -45,4 +47,4 @@ WORKDIR /app
 EXPOSE 5001
 
 # Définir la commande par défaut pour exécuter l'application
-CMD ["uvicorn", "main:app", "--reload", "--port", "5001", "--host", "0.0.0.0"]
+CMD ["uvicorn", "main:app", "--reload", "--port", "5000", "--host", "0.0.0.0"]

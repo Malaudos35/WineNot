@@ -109,7 +109,6 @@ class WineBottleCreate(BaseModel):
     quantity: Optional[int] = 1
     image_url: Optional[str] = None
     notes: Optional[str] = None
-    scrape: bool = False
 
 
 class WineBottleUpdate(BaseModel):

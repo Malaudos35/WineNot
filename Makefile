@@ -1,4 +1,7 @@
-.PHONY: all venv build test_unitaires
+.PHONY: all venv build test_unitaires scan_images_local install_githooks
+
+TRIVY_IMAGE ?= aquasec/trivy:0.61.1
+LOCAL_IMAGES ?= winenot-backend:latest winenot-frontend:latest
 
 # Cible par défaut : affiche les commandes sans les exécuter
 default:
@@ -9,6 +12,8 @@ default:
 	@echo "  make lunch          - Construit et lance les conteneurs Docker en interactif"
 	@echo "  make linter         - Lance le linter sur le code python"
 	@echo "  make test_unitaires - Exécute les tests unitaires"
+	@echo "  make scan_images_local - Build et scan Trivy des images locales"
+	@echo "  make install_githooks  - Active le hook pre-push local"
 
 # Cible pour tout exécuter
 all: venv build test_unitaires
@@ -43,3 +48,29 @@ test_unitaires:
 	# echo "=== Running CDN tests ==="
 	# pytest cdn/tests/ -v
 	@echo "=== All tests finished ==="
+
+scan_images_local:
+	@echo "[scan] Building local images before security scan..."
+	@docker compose build backend frontend
+	@echo "[scan] Scanning images with Trivy (HIGH,CRITICAL)..."
+	@for image in $(LOCAL_IMAGES); do \
+		if ! docker image inspect $$image >/dev/null 2>&1; then \
+			echo "ERROR: image '$$image' not found after build."; \
+			exit 1; \
+		fi; \
+		echo "[scan] $$image"; \
+		docker run --rm \
+			-v /var/run/docker.sock:/var/run/docker.sock \
+			$(TRIVY_IMAGE) image \
+			--severity HIGH,CRITICAL \
+			--ignore-unfixed \
+			--exit-code 1 \
+			--no-progress \
+			$$image; \
+	done
+	@echo "[scan] Security scan passed for all local images."
+
+install_githooks:
+	@chmod +x ./.githooks/pre-push
+	@git config core.hooksPath .githooks
+	@echo "Git hook pre-push active via .githooks/pre-push"

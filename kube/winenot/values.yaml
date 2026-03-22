@@ -1,0 +1,77 @@
+nameOverride: ""
+fullnameOverride: ""
+
+imagePullSecrets: []
+
+global:
+  timezone: "Europe/Paris"
+
+mysql:
+  image:
+    repository: mysql
+    tag: "9.5"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3306
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+  auth:
+    user: wine_user
+    password: secure_password
+    database: wine_cellar
+    rootPassword: root_password
+
+backend:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/malaudos35/winenot-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 5000
+  env:
+    flaskEnv: development
+    apiPathRoot: /api/v1
+    minioApiUrl: ""
+    playwrightServerUrl: ""
+    adminName: Admin
+    adminUsername: admin@example.com
+    adminPassword: admin
+
+cdn:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/malaudos35/winenot-cdn
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 5000
+  env:
+    nodeId: node1:5000
+    neighbors: ""
+
+playwright:
+  replicaCount: 1
+  image:
+    repository: mcr.microsoft.com/playwright:v1.53.0-noble
+    tag: ""
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3000
+  command:
+    - npx
+    - playwright
+    - run-server
+    - --port=3000
+    - --host=0.0.0.0
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

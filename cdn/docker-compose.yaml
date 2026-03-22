@@ -1,6 +1,8 @@
 services:
   node1:
-    build: .
+    build:
+      context: .
+      dockerfile: cdn.Dockerfile
     container_name: cdn_node1
     ports:
       - "5001:5000"
@@ -13,7 +15,9 @@ services:
       - SEED=999
 
   node2:
-    build: .
+    build:
+      context: .
+      dockerfile: cdn.Dockerfile
     container_name: cdn_node2
     ports:
       - "5002:5000"
@@ -25,7 +29,9 @@ services:
       - NEIGHBORS=${NEIGHBORS}
 
   node3:
-    build: .
+    build:
+      context: .
+      dockerfile: cdn.Dockerfile
     container_name: cdn_node3
     ports:
       - "5003:5000"

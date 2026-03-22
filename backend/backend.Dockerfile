@@ -1,23 +1,14 @@
-# Utiliser une image Python officielle comme image de base
-FROM python:3.11
+# Utiliser une image Python plus légère pour réduire la surface d'attaque
+FROM python:3.11-slim-bookworm
 
-# Définir le répertoire de travail dans le conteneur
-WORKDIR /tmp
-
-# Installer tzdata pour les informations de fuseau horaire
-RUN apt-get update 
-RUN apt-get upgrade -y
-RUN apt-get install -y tzdata >> /dev/null
-
-RUN pip install --upgrade pip
-
-# Copier le fichier requirements.txt dans le conteneur
-COPY requirements.txt .
+# Définir le répertoire de travail
+WORKDIR /app
 
 # Installer les dépendances Python
-RUN pip install --no-cache-dir -r requirements.txt
-
-WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip \
+	&& pip install --no-cache-dir --upgrade "setuptools>=80.9.0" "wheel>=0.46.2" \
+	&& pip install --no-cache-dir -r requirements.txt
 
 # Exposer le port sur lequel l'application écoute
 EXPOSE 5000
