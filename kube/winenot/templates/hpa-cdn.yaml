@@ -18,5 +18,5 @@ spec:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.cdn.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ default 50 .Values.cdn.autoscaling.targetCPUUtilizationPercentage }}
 {{- end }}
