@@ -35,11 +35,6 @@ spec:
             enabled: true
             minReplicas: 2
             maxReplicas: 5
-        cdn:
-          autoscaling:
-            enabled: true
-            minReplicas: 1
-            maxReplicas: 3
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: winenot

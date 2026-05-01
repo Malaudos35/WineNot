@@ -3,9 +3,6 @@
 Backend service:
   {{ include "winenot.fullname" . }}-backend:{{ .Values.backend.service.port }}
 
-Playwright service:
-  {{ include "winenot.fullname" . }}-playwright:{{ .Values.playwright.service.port }}
-
 MySQL service:
   {{ include "winenot.fullname" . }}-db:{{ .Values.mysql.service.port }}
 
@@ -24,7 +21,6 @@ Ingress:
 
 Autoscaling:
   Backend HPA: {{ if .Values.backend.autoscaling.enabled }}enabled{{ else }}disabled{{ end }}
-  CDN HPA: {{ if .Values.cdn.autoscaling.enabled }}enabled{{ else }}disabled{{ end }}
 
 Certificate (cert-manager):
   cert-manager: {{ if .Values.certManager.enabled }}enabled{{ else }}disabled{{ end }}

@@ -44,55 +44,9 @@ backend:
   env:
     flaskEnv: development
     apiPathRoot: /api/v1
-    minioApiUrl: ""
-    playwrightServerUrl: ""
     adminName: Admin
     adminUsername: admin@example.com
     adminPassword: admin
-
-cdn:
-  replicaCount: 1
-  image:
-    repository: ghcr.io/malaudos35/winenot-cdn
-    tag: latest
-    pullPolicy: IfNotPresent
-  service:
-    type: ClusterIP
-    port: 5000
-  # Resource requests/limits for the CDN node
-  resources:
-    requests:
-      cpu: 50m
-      memory: 64Mi
-    limits:
-      cpu: 250m
-      memory: 256Mi
-  env:
-    nodeId: node1:5000
-    neighbors: ""
-
-playwright:
-  replicaCount: 1
-  image:
-    repository: mcr.microsoft.com/playwright:v1.53.0-noble
-    tag: ""
-    pullPolicy: IfNotPresent
-  service:
-    type: ClusterIP
-    port: 3000
-  resources:
-    requests:
-      cpu: 100m
-      memory: 256Mi
-    limits:
-      cpu: 1000m
-      memory: 2Gi
-  command:
-    - npx
-    - playwright
-    - run-server
-    - --port=3000
-    - --host=0.0.0.0
 
 resources: {}
 nodeSelector: {}
@@ -105,14 +59,14 @@ ingress:
   className: ""
   # Hostnames to expose the application (set to your domain)
   hosts:
-    - host: lvp.ovh
-      paths:
-        - path: /
-          pathType: Prefix
+  - host: lvp.ovh
+    paths:
+    - path: /
+      pathType: Prefix
   tls:
-    - hosts:
-        - lvp.ovh
-      secretName: lvp-ovh-tls
+  - hosts:
+    - lvp.ovh
+    secretName: lvp-ovh-tls
   # Add annotations for ingress controller / cert-manager
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"

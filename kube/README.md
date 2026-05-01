@@ -1,6 +1,6 @@
 # WineNot Kubernetes (winenot Helm Chart)
 
-This folder contains a Helm chart `winenot` to deploy the WineNot stack (backend, CDN, Playwright, MySQL) and manifests to make the chart ArgoCD-ready.
+This folder contains a Helm chart `winenot` to deploy the WineNot stack (backend, MySQL) and manifests to make the chart ArgoCD-ready.
 
 Quick overview of what was added:
 
@@ -8,10 +8,10 @@ Quick overview of what was added:
 - `templates/` additions:
   - `serviceaccount.yaml` — creates a ServiceAccount
   - `role.yaml`, `rolebinding.yaml` — namespace-scoped Role and RoleBinding for the ServiceAccount
-  - `ingress.yaml` — Ingress for `lvp.ovh`, routes `/` to CDN and `/api` to backend
+  - `ingress.yaml` — Ingress for `lvp.ovh`, routes traffic to backend
   - `certificate.yaml` — cert-manager `Certificate` resource to request TLS secret
   - `clusterissuers.yaml` — ClusterIssuer manifest (LetsEncrypt staging or prod) when enabled
-  - `hpa-backend.yaml`, `hpa-cdn.yaml` — HorizontalPodAutoscaler manifests
+  - `hpa-backend.yaml` — HorizontalPodAutoscaler manifest
   - `argocd-application.yaml` — example ArgoCD Application manifest to deploy the chart
 
 Prerequisites for production deployment

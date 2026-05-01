@@ -34,7 +34,7 @@ spec:
             - name: http
               containerPort: 5000
           securityContext:
-            runAsNonRoot: true
+            runAsNonRoot: false
             allowPrivilegeEscalation: false
           livenessProbe:
             tcpSocket:
@@ -57,10 +57,6 @@ spec:
               value: {{ .Values.backend.env.apiPathRoot | quote }}
             - name: DATABASE_URL
               value: {{ printf "mysql+pymysql://%s:%s@%s-db:3306/%s" .Values.mysql.auth.user .Values.mysql.auth.password (include "winenot.fullname" .) .Values.mysql.auth.database | quote }}
-            - name: MINIO_API_URL
-              value: {{ .Values.backend.env.minioApiUrl | quote }}
-            - name: PLAYWRIGHT_SERVER_URL
-              value: {{ default (printf "http://%s-playwright:%d" (include "winenot.fullname" .) (int .Values.playwright.service.port)) .Values.backend.env.playwrightServerUrl | quote }}
             - name: MYSQL_USER
               valueFrom:
                 secretKeyRef:
