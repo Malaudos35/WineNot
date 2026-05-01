@@ -1,0 +1,16 @@
+---
+# Customize these variables before running the playbook
+repo_url: 'https://github.com/Malaudos35/WineNot.git'
+repo_path: 'kube/winenot'
+target_revision: 'dev/Malaudos35/kube'
+app_namespace: 'winenot'
+app_name: 'winenot'
+argocd_namespace: 'argocd'
+ingress_host: 'lvp.ovh'
+email: 'admin@lvp.ovh'
+use_staging: false
+ingress_enabled: true
+backend_min_replicas: 2
+backend_max_replicas: 5
+cdn_min_replicas: 1
+cdn_max_replicas: 3

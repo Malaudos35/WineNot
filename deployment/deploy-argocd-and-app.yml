@@ -1,0 +1,44 @@
+---
+
+- name: Deploy ArgoCD and WineNot Application via ArgoCD
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files:
+  - group_vars/all.yml
+  tasks:
+  - name: Check kubectl is installed
+    command: kubectl version --client
+    register: kubectl_check
+    changed_when: false
+  - name: Ensure ArgoCD namespace exists
+    shell: kubectl create namespace {{ argocd_namespace }} --dry-run=client -o yaml | kubectl apply -f -
+    args:
+      executable: /bin/bash
+  - name: Install ArgoCD using upstream manifest
+    shell: kubectl apply --server-side --force-conflicts -n {{ argocd_namespace }} -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+    args:
+      executable: /bin/bash
+  - name: Wait for argocd-server rollout
+    command: kubectl -n {{ argocd_namespace }} rollout status deployment/argocd-server --timeout=180s
+    register: rollout_status
+    failed_when: rollout_status.rc != 0
+  - name: Ensure application namespace exists
+    shell: kubectl create namespace {{ app_namespace }} --dry-run=client -o yaml | kubectl apply -f -
+    args:
+      executable: /bin/bash
+  - name: Render ArgoCD Application manifest
+    template:
+      src: templates/argocd-application.yaml.j2
+      dest: /tmp/{{ app_name }}-argocd-application.yaml
+  - name: Apply ArgoCD Application manifest
+    command: kubectl -n {{ argocd_namespace }} apply -f /tmp/{{ app_name }}-argocd-application.yaml
+  - name: Show ArgoCD initial admin password (secret)
+    shell: kubectl -n {{ argocd_namespace }} get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' || true
+    args:
+      executable: /bin/bash
+    register: initial_admin_secret
+    changed_when: false
+  - name: Print admin password (base64)
+    debug:
+      msg: "ArgoCD initial admin password (base64): {{ initial_admin_secret.stdout }}"
