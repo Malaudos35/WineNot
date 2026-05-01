@@ -56,7 +56,7 @@ affinity: {}
 # Ingress configuration (optional)
 ingress:
   enabled: true
-  className: ""
+  className: "traefik"
   # Hostnames to expose the application (set to your domain)
   hosts:
   - host: lvp.ovh
@@ -69,8 +69,7 @@ ingress:
     secretName: lvp-ovh-tls
   # Add annotations for ingress controller / cert-manager
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    kubernetes.io/ingress.class: "nginx"
+    kubernetes.io/ingress.class: "traefik"
 
 # cert-manager settings (creates a Certificate when enabled)
 certManager:
@@ -78,14 +77,10 @@ certManager:
   issuerName: "letsencrypt-prod"
   # secretName used for the Certificate (should match ingress.tls.secretName)
   secretName: lvp-ovh-tls
-  # If true, template `Certificate` will be created for hosts defined in ingress.hosts
-  createCertificate: true
-  # Create ClusterIssuer(s) in the cluster (will create ClusterIssuer resources)
   createClusterIssuer: true
-  # Use Let's Encrypt staging server to test (set to false for production)
+  email: lvp.communautee@gmail.com
+  createCertificate: true
   useStaging: false
-  # Email used for ACME registration
-  email: admin@lvp.ovh
 
 # ServiceAccount
 serviceAccount:
