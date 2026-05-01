@@ -138,17 +138,4 @@ serviceAccount:
   create: true
   name: ""
 
-# Horizontal Pod Autoscaler settings for backend and cdn
-backend:
-  autoscaling:
-    enabled: false
-    minReplicas: 1
-    maxReplicas: 5
-    targetCPUUtilizationPercentage: 70
-
-cdn:
-  autoscaling:
-    enabled: false
-    minReplicas: 1
-    maxReplicas: 3
-    targetCPUUtilizationPercentage: 50
+# Horizontal Pod Autoscaler defaults are provided via ArgoCD Helm values overrides.
