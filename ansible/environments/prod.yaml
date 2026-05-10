@@ -1,0 +1,4 @@
+fluxcd_GITHUB_branch: main
+fluxcd_GITHUB_path: ./clusters
+fluxcd_expected_app_namespace: voting-prod
+fluxcd_expected_monitoring_namespace: monitoring-prod

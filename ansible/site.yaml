@@ -1,0 +1,17 @@
+---
+# Deploy WineNot on VPS K3s with ArgoCD
+- name: Deploy ArgoCD and WineNot on VPS K3s
+  hosts: vps_k3s_control
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Install Python dependencies for Ansible Kubernetes modules
+      block:
+        - name: Update apt cache
+          apt:
+            update_cache: true
+            cache_valid_time: 3600
+
+  roles:
+    - argocd
+

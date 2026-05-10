@@ -1,0 +1,12 @@
+---
+- name: Using grafana collection
+  hosts: localhost
+  tasks:
+  - name: Create a Grafana Cloud stack
+    grafana.grafana.cloud_stack:
+      name: mystack
+      stack_slug: mystack
+      org_slug: myorg
+      # cloud_api_key: "{{ cloud_api_key }}"
+      region: eu
+      state: present

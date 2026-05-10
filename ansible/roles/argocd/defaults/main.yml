@@ -1,0 +1,11 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for argocd
+argocd_enabled: true
+argocd_helm_chart_version: "7.0.0"
+argocd_ingress_host: "argocd.lvp.ovh"
+argocd_ingress_enabled: true
+argocd_ingress_class: "traefik"
+argocd_ingress_tls_secret: "argocd-server-tls"
+argocd_server_replicas: 1
+

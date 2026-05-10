@@ -1,0 +1,17 @@
+---
+- hosts: all
+  gather_facts: True
+  become: True
+
+  tasks:
+  # - name: Perform a dist-upgrade.
+  #   ansible.builtin.apt:
+  #     upgrade: dist
+  #     update_cache: yes
+
+  # - name: Load vars
+  #   ansible.builtin.include_vars:
+  # file: vars.yml
+
+  - ansible.builtin.include_role:
+      name: ../roles/initialisation

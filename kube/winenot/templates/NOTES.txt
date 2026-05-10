@@ -5,3 +5,13 @@ Backend service:
 
 MySQL service:
   {{ include "winenot.fullname" . }}-db:{{ .Values.mysql.service.port }}
+
+Ingress:
+{{- if .Values.ingress.enabled }}
+  Host(s):
+  {{- range .Values.ingress.hosts }}
+    - {{ .host }}
+  {{- end }}
+{{- else }}
+  Disabled.
+{{- end }}
