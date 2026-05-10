@@ -1,0 +1,8 @@
+#SPDX-License-Identifier: MIT-0
+---
+# vars file for argocd
+argocd_version: "7.x"
+argocd_namespace: "argocd"
+argocd_git_repo_url: "https://github.com/Malaudos35/WineNot.git"
+argocd_install_timeout: 300
+

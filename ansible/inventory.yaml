@@ -1,0 +1,26 @@
+all:
+  vars:
+    ansible_user: "user"
+    ansible_ssh_private_key_file: "~/.ssh/id_rsa"
+    github_username: "{{ lookup('env', 'USER_GITHUB') | default(lookup('env', 'FLUX_GIT_USERNAME'), true) }}"
+    github_token: "{{ lookup('env', 'TOKEN_GITHUB') | default(lookup('env', 'FLUX_GIT_TOKEN'), true) }}"
+    fluxcd_git_repo_url: "https://github.com/Malaudos35/homelab.git"
+    fluxcd_git_repo_secret_name: "flux-git-auth"
+    fluxcd_git_repo_username: "{{ github_username }}"
+    fluxcd_git_repo_password: "{{ github_token }}"
+    fluxcd_cosign_public_key: "{{ lookup('env', 'COSIGN_PUBLIC_KEY') }}"
+    k3s_registry_username: "{{ github_username }}"
+    k3s_registry_password: "{{ github_token }}"
+    k3s_dockerhub_username: "{{ lookup('env', 'DOCKERHUB_USERNAME') | default('', true) }}"
+    k3s_dockerhub_password: "{{ lookup('env', 'DOCKERHUB_TOKEN') | default('', true) }}"
+  children:
+    vps_k3s_nodes:
+      hosts:
+        lvp-ovh:
+          ansible_host: lvp.ovh
+          ansible_port: 7022
+          ansible_user: debian
+          ansible_ssh_private_key_file: "~/.ssh/id_rsa"
+    vps_k3s_control:
+      hosts:
+        lvp-ovh:

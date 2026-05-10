@@ -41,6 +41,25 @@ backend:
     adminUsername: admin@example.com
     adminPassword: admin
 
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    kubernetes.io/ingress.class: "traefik"
+  hosts:
+    - host: lvp.ovh
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: lvp-ovh-tls
+      hosts:
+        - lvp.ovh
+
+frontend:
+  enabled: false
+
 resources: {}
 nodeSelector: {}
 tolerations: []

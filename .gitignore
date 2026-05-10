@@ -212,3 +212,5 @@ bin
 # backend
 
 .env
+
+notes.txt

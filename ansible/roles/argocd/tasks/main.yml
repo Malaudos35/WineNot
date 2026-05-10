@@ -1,0 +1,229 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for argocd
+- name: Create argocd namespace
+  kubernetes.core.k8s:
+    name: argocd
+    api_version: v1
+    kind: Namespace
+    state: present
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Add ArgoCD Helm repo
+  kubernetes.core.helm_repository:
+    name: argocd
+    repo_url: https://argoproj.github.io/argo-helm
+    state: present
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Clean up existing ArgoCD CRDs if present
+  shell: |
+    set -e
+    export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+    # Delete all ArgoCD custom resources
+    kubectl delete applicationsets,applications,appprojects --all-namespaces --ignore-not-found=true 2>/dev/null || true
+
+    # Delete ArgoCD namespace (this will cascade delete namespaced resources)
+    kubectl delete namespace argocd --ignore-not-found=true 2>/dev/null || true
+
+    # Delete orphaned cluster-scoped RBAC resources created by the chart
+    for resource in $(kubectl get clusterrole,clusterrolebinding -o name 2>/dev/null | grep '^\(clusterrole\|clusterrolebinding\)\.rbac\.authorization\.k8s\.io/argocd' || true); do
+      kubectl delete "$resource" --ignore-not-found=true 2>/dev/null || true
+    done
+
+    # Force remove CRDs with broken metadata by patching finalizers
+    for crd in applications.argoproj.io appprojects.argoproj.io applicationsets.argoproj.io; do
+      kubectl patch crd "$crd" -p '{"metadata":{"finalizers":[]}}' --type=merge 2>/dev/null || true
+      kubectl delete crd "$crd" --ignore-not-found=true 2>/dev/null || true
+    done
+
+    # Wait for cleanup
+    sleep 5
+  register: cleanup_result
+  ignore_errors: true
+  changed_when: "'deleted' in cleanup_result.stdout.lower()"
+
+- name: Install ArgoCD via Helm
+  kubernetes.core.helm:
+    name: argocd
+    chart_ref: argocd/argo-cd
+    release_namespace: argocd
+    create_namespace: true
+    force: true
+    replace: true
+    wait: true
+    timeout: 5m
+    values:
+      global:
+        domain: "{{ argocd_ingress_host }}"
+      configs:
+        params:
+          server.insecure: true
+        cm:
+          application.instanceLabelKey: argocd.argoproj.io/instance
+      server:
+        ingress:
+          enabled: true
+          ingressClassName: "{{ argocd_ingress_class }}"
+          hostname: "{{ argocd_ingress_host }}"
+          path: /
+          pathType: Prefix
+          annotations:
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          traefik.ingress.kubernetes.io/router.entrypoints: websecure
+        extraTls:
+          - hosts:
+              - "{{ argocd_ingress_host }}"
+            secretName: "{{ argocd_ingress_tls_secret }}"
+      controller:
+        replicas: 1
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Wait for ArgoCD API server to be ready
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    wait: true
+    wait_condition:
+      type: Available
+      status: "True"
+    name: argocd-server
+    namespace: argocd
+    wait_sleep: 10
+    wait_timeout: 300
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Create winenot namespace
+  kubernetes.core.k8s:
+    name: winenot
+    api_version: v1
+    kind: Namespace
+    state: present
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Create ArgoCD Application for WineNot
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: winenot
+        namespace: argocd
+      spec:
+        project: default
+        source:
+          repoURL: "{{ argocd_git_repo_url }}"
+          targetRevision: main
+          path: kube/winenot
+        destination:
+          server: https://kubernetes.default.svc
+          namespace: winenot
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true
+          syncOptions:
+            - CreateNamespace=true
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Wait for WineNot deployment to sync
+  kubernetes.core.k8s_info:
+    kind: Application
+    name: winenot
+    namespace: argocd
+    wait: true
+    wait_condition:
+      type: Synced
+      status: "True"
+    wait_timeout: 300
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: winenot_app
+
+- name: Display WineNot deployment status
+  debug:
+    msg: >-
+      WineNot ArgoCD Application deployed: {{ (winenot_app.resources | default([]) | first).status.operationState.phase
+      if (winenot_app.resources | default([]) | length) > 0 else 'status unavailable yet' }}
+
+- name: Create winenot-dev namespace
+  kubernetes.core.k8s:
+    name: winenot-dev
+    api_version: v1
+    kind: Namespace
+    state: present
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Create ArgoCD Application for WineNot (dev branch)
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: winenot-dev
+        namespace: argocd
+      spec:
+        project: default
+        source:
+          repoURL: "{{ argocd_git_repo_url }}"
+          targetRevision: "dev/Malaudos35/deployment-argocd"
+          path: kube/winenot
+          helm:
+            values: |
+              ingress:
+                enabled: true
+                className: "traefik"
+                annotations:
+                  cert-manager.io/cluster-issuer: "letsencrypt-prod"
+                  kubernetes.io/ingress.class: "traefik"
+                hosts:
+                  - host: ftp.lvp.ovh
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                tls:
+                  - secretName: ftp-lvp-ovh-tls
+                    hosts:
+                      - ftp.lvp.ovh
+        destination:
+          server: https://kubernetes.default.svc
+          namespace: winenot-dev
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true
+          syncOptions:
+            - CreateNamespace=true
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+- name: Wait for WineNot (dev) deployment to sync
+  kubernetes.core.k8s_info:
+    kind: Application
+    name: winenot-dev
+    namespace: argocd
+    wait: true
+    wait_condition:
+      type: Synced
+      status: "True"
+    wait_timeout: 300
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: winenot_dev_app
+
+- name: Display WineNot-dev deployment status
+  debug:
+    msg: >-
+      WineNot-dev ArgoCD Application deployed: {{ (winenot_dev_app.resources | default([]) | first).status.operationState.phase
+      if (winenot_dev_app.resources | default([]) | length) > 0 else 'status unavailable yet' }}
+
+
