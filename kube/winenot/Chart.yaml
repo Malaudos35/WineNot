@@ -1,6 +1,6 @@
 apiVersion: v2
 name: winenot
-description: Helm chart for WineNot stack (backend, db, cdn, playwright)
+description: Helm chart for WineNot stack (backend, db, frontend)
 type: application
 version: 0.1.0
 appVersion: "1.0.0"

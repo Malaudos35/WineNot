@@ -27,7 +27,5 @@ python-dotenv==1.2.1
 
 # Scraping et requêtes HTTP
 requests==2.32.5
-playwright==1.56.0
-# imageio==2.37.2
 
 # pip install pytest pytest-cov requests python-dotenv

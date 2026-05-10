@@ -74,14 +74,14 @@ class PermissionOut(BaseModel):
 # ---- Wine Cellars ----
 class WineCellarCreate(BaseModel):
     name: str
-    location: Optional[str]
-    capacity: Optional[int]
+    location: Optional[str] = None
+    capacity: Optional[int] = None
 
 
 class WineCellarUpdate(BaseModel):
-    name: Optional[str]
-    location: Optional[str]
-    capacity: Optional[int]
+    name: Optional[str] = None
+    location: Optional[str] = None
+    capacity: Optional[int] = None
 
 
 class WineCellarOut(BaseModel):

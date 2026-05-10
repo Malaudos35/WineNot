@@ -3,8 +3,5 @@
 Backend service:
   {{ include "winenot.fullname" . }}-backend:{{ .Values.backend.service.port }}
 
-Playwright service:
-  {{ include "winenot.fullname" . }}-playwright:{{ .Values.playwright.service.port }}
-
 MySQL service:
   {{ include "winenot.fullname" . }}-db:{{ .Values.mysql.service.port }}

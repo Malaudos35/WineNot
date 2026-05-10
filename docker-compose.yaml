@@ -46,6 +46,7 @@ services:
     volumes:
       # - ./backend/code:/app:ro
         - ./backend/code:/app
+        - ./backend/tests:/app/tests
     networks:
       - frontend
       - backend
