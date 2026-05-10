@@ -22,7 +22,6 @@ all: venv build test_unitaires
 venv:
 	@python -m venv venv
 	@. venv/bin/activate && pip install -r backend/requirements.txt
-	@. venv/bin/activate && pip install -r scrapper/requirements.txt
 
 # Lance la construction et le démarrage des conteneurs Docker
 build:
@@ -37,16 +36,12 @@ lunch:
 linter:
 	@echo "=== Running backend tests ==="
 	@pylint --rcfile=.pylintrc --fail-under=8 backend/code
-	@echo "=== Running CDN tests ==="
-	@pylint --rcfile=.pylintrc --fail-under=8 cdn/code
 	@echo "=== All tests finished ==="
 
 # Execute les tests unitaires
 test_unitaires:
 	@echo "=== Running backend tests ==="
 	@pytest backend/tests/ -v
-	# echo "=== Running CDN tests ==="
-	# pytest cdn/tests/ -v
 	@echo "=== All tests finished ==="
 
 scan_images_local:

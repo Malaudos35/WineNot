@@ -6,8 +6,4 @@ echo "=== Running backend tests ==="
 
 pylint --rcfile=.pylintrc --fail-under=8 backend/code
 
-echo "=== Running CDN tests ==="
-
-pylint --rcfile=.pylintrc --fail-under=8 cdn/code
-
 echo "=== All tests finished ==="

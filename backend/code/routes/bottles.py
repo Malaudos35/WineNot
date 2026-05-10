@@ -9,7 +9,6 @@ import models
 import schemas
 from dependencies import API_PATH_ROOT, get_db, get_current_user
 from database import logger
-# from Playwright_vinvino import scrape_vivino_info
 
 router = APIRouter(prefix=API_PATH_ROOT , tags=["Wine Bottles"])
 

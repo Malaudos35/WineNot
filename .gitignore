@@ -211,13 +211,4 @@ __marimo__/
 bin
 # backend
 
-# Minio S3
-/minio/data*
-/test/
-
-# cdn
-/cdn/data1/
-/cdn/data2/
-/cdn/data3/
-
 .env

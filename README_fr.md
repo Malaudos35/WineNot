@@ -109,21 +109,46 @@ FLUSH PRIVILEGES;
 
 ## 🧪 Lancer les tests
 
+### Tests unitaires (par entité)
+
 ```bash
-cd backend/test
-pytest -v
+cd backend
+pytest tests/ -v
 ```
 
 Les tests effectuent :
 
 - La réinitialisation de la base (`GET /clean` + `GET /init`)
-- L’authentification admin (`POST /tokens`)
+- L'authentification admin (`POST /tokens`)
 - Les opérations CRUD complètes sur :
-
   - Utilisateurs
   - Permissions
   - Caves
   - Bouteilles
+
+### Tests fonctionnels (workflows complets)
+
+```bash
+# Lancer tous les tests fonctionnels
+bash run_tests_fonctionnels.sh
+
+# Ou manuellement
+cd backend
+pytest tests/test_functional_workflows.py -v
+```
+
+Les tests fonctionnels vérifient les **workflows réalistes complets** :
+
+- ✅ **Enregistrement et connexion**: Créer utilisateur → Connexion → Accès aux ressources
+- ✅ **Gestion des caves**: Création → Consultation → Modification → Suppression
+- ✅ **Gestion des bouteilles**: Ajout → Modification → Suppression avec validations
+- ✅ **Isolation des données**: Vérifier que les utilisateurs ne voient que leurs propres ressources
+- ✅ **Contrôle d'accès**: Tester les permissions et rejets d'accès non autorisés
+- ✅ **Validation des données**: Tester les entrées invalides
+- ✅ **Gestion des erreurs**: Vérifier les codes HTTP corrects (404, 401, 403)
+- ✅ **Scénarios complexes**: Multi-caves, multi-bouteilles, modifications progressives
+
+Pour plus de détails : [backend/tests/TESTS_FONCTIONNELS.md](backend/tests/TESTS_FONCTIONNELS.md)
 
 ---
 
