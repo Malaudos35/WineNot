@@ -3,8 +3,28 @@
 Backend service:
   {{ include "winenot.fullname" . }}-backend:{{ .Values.backend.service.port }}
 
-Playwright service:
-  {{ include "winenot.fullname" . }}-playwright:{{ .Values.playwright.service.port }}
-
 MySQL service:
   {{ include "winenot.fullname" . }}-db:{{ .Values.mysql.service.port }}
+
+Ingress:
+{{- if .Values.ingress.enabled }}
+  Host(s):
+  {{- range .Values.ingress.hosts }}
+    - {{ .host }}
+  {{- end }}
+  TLS: {{ if .Values.ingress.tls }}enabled{{ else }}disabled{{ end }}
+  Tip: enable `ingress.enabled` and set `ingress.hosts[0].host` in `values.yaml`.
+  Example: configure cert-manager annotations in `ingress.annotations` for automatic TLS.
+{{- else }}
+  Disabled.
+{{- end }}
+
+Autoscaling:
+  Backend HPA: {{ if .Values.backend.autoscaling.enabled }}enabled{{ else }}disabled{{ end }}
+
+Certificate (cert-manager):
+  cert-manager: {{ if .Values.certManager.enabled }}enabled{{ else }}disabled{{ end }}
+  Certificate created: {{ if .Values.certManager.createCertificate }}yes{{ else }}no{{ end }}
+  Secret name: {{ .Values.certManager.secretName }}
+  Issuer: {{ .Values.certManager.issuerName }}
+  Tip: ensure `ClusterIssuer` named `{{ .Values.certManager.issuerName }}` exists (e.g., LetsEncrypt production).

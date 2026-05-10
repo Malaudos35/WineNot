@@ -1,0 +1,17 @@
+{{- if and .Values.certManager.enabled .Values.certManager.createCertificate }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "winenot.fullname" . }}-tls
+  labels:
+    {{- include "winenot.labels" . | nindent 4 }}
+spec:
+  secretName: {{ .Values.certManager.secretName | quote }}
+  issuerRef:
+    name: {{ .Values.certManager.issuerName | quote }}
+    kind: ClusterIssuer
+  dnsNames:
+    {{- range .Values.ingress.hosts }}
+    - {{ .host | quote }}
+    {{- end }}
+{{- end }}

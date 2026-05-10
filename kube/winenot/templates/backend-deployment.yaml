@@ -23,13 +23,35 @@ spec:
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       {{- end }}
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ default (include "winenot.fullname" .) .Values.serviceAccount.name | trunc 63 | trimSuffix "-" }}-sa
+      {{- end }}
       containers:
         - name: backend
           image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
           imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - cd /app/code && uvicorn main:app --host 0.0.0.0 --port 5000
           ports:
             - name: http
               containerPort: 5000
+          securityContext:
+            runAsNonRoot: false
+            allowPrivilegeEscalation: false
+          livenessProbe:
+            tcpSocket:
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
           env:
             - name: TZ
               value: {{ .Values.global.timezone | quote }}
@@ -38,11 +60,7 @@ spec:
             - name: API_PATH_ROOT
               value: {{ .Values.backend.env.apiPathRoot | quote }}
             - name: DATABASE_URL
-              value: mysql+pymysql://$(MYSQL_USER):$(MYSQL_PASSWORD)@{{ include "winenot.fullname" . }}-db:3306/$(MYSQL_DATABASE)
-            - name: MINIO_API_URL
-              value: {{ .Values.backend.env.minioApiUrl | quote }}
-            - name: PLAYWRIGHT_SERVER_URL
-              value: {{ default (printf "http://%s-playwright:%d" (include "winenot.fullname" .) (int .Values.playwright.service.port)) .Values.backend.env.playwrightServerUrl | quote }}
+              value: {{ printf "mysql+pymysql://%s:%s@%s-db:3306/%s" .Values.mysql.auth.user .Values.mysql.auth.password (include "winenot.fullname" .) .Values.mysql.auth.database | quote }}
             - name: MYSQL_USER
               valueFrom:
                 secretKeyRef:
@@ -74,4 +92,4 @@ spec:
                   name: {{ include "winenot.fullname" . }}-secrets
                   key: ADMIN_PASSWORD
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.backend.resources | nindent 12 }}

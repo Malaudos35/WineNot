@@ -1,0 +1,22 @@
+{{- if and .Values.backend.autoscaling.enabled (not (empty .Values.backend.autoscaling)) }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "winenot.fullname" . }}-backend-hpa
+  labels:
+    {{- include "winenot.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "winenot.fullname" . }}-backend
+  minReplicas: {{ .Values.backend.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.backend.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ default 70 .Values.backend.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

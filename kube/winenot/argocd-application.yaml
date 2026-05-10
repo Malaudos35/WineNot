@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: winenot
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/your-org/WineNot'
+    targetRevision: HEAD
+    path: kube/winenot
+    helm:
+      valueFiles:
+      - values.yaml
+      values: |
+        ingress:
+          enabled: true
+          hosts:
+            - host: lvp.ovh
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - lvp.ovh
+              secretName: lvp-ovh-tls
+        certManager:
+          enabled: true
+          createCertificate: true
+          createClusterIssuer: true
+          useStaging: false
+          email: admin@lvp.ovh
+        backend:
+          autoscaling:
+            enabled: true
+            minReplicas: 2
+            maxReplicas: 5
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: winenot
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+
+# Notes:
+# - Replace `repoURL` with your Git repository URL where this chart lives.
+# - `CreateNamespace=true` will create the `winenot` namespace automatically.
+# - For TLS, configure `ingress.annotations` in the Helm values (cert-manager).

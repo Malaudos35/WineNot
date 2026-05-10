@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ app_name }}
+  namespace: {{ argocd_namespace }}
+spec:
+  project: default
+  source:
+    repoURL: '{{ repo_url }}'
+    targetRevision: '{{ target_revision }}'
+    path: '{{ repo_path }}'
+    helm:
+      valueFiles:
+        - values.yaml
+      values: |
+        ingress:
+          enabled: {{ 'true' if ingress_enabled else 'false' }}
+          hosts:
+            - host: {{ ingress_host }}
+              paths:
+                - path: /
+                  pathType: Prefix
+          tls:
+            - hosts:
+                - {{ ingress_host }}
+              secretName: lvp-ovh-tls
+        certManager:
+          enabled: true
+          createCertificate: true
+          createClusterIssuer: true
+          useStaging: {{ 'true' if use_staging else 'false' }}
+          email: {{ email }}
+        backend:
+          autoscaling:
+            enabled: true
+            minReplicas: {{ backend_min_replicas }}
+            maxReplicas: {{ backend_max_replicas }}
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: {{ app_namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

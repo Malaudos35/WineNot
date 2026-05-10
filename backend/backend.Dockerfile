@@ -10,8 +10,11 @@ RUN pip install --no-cache-dir --upgrade pip \
 	&& pip install --no-cache-dir --upgrade "setuptools>=80.9.0" "wheel>=0.46.2" \
 	&& pip install --no-cache-dir -r requirements.txt
 
+# Copier le code applicatif dans l'image
+COPY code /app/code
+
 # Exposer le port sur lequel l'application écoute
 EXPOSE 5000
 
 # Définir la commande par défaut pour exécuter l'application
-CMD ["uvicorn", "main:app", "--reload", "--port", "5000", "--host", "0.0.0.0"]
+CMD ["uvicorn", "main:app", "--port", "5000", "--host", "0.0.0.0", "--app-dir", "/app/code"]
