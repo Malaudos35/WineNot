@@ -212,3 +212,7 @@ bin
 # backend
 
 .env
+.vscode
+notes.txt
+
+
